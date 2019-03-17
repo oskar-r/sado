@@ -1,0 +1,19 @@
+"nats": {
+    "1": {
+        "enable": true,
+        "address": "0.0.0.0:4222",
+        "subject": "bucketevents",
+        "username": "yourusername",
+        "password": "yoursecret",
+        "token": "",
+        "secure": false,
+        "pingInterval": 0
+        "streaming": {
+            "enable": false,
+            "clusterID": "",
+            "clientID": "",
+            "async": false,
+            "maxPubAcksInflight": 0
+        }
+    }
+},
