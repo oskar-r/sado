@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"reflect"
-	"strconv"
 	"time"
 
 	"github.com/casbin/casbin"
@@ -49,6 +49,7 @@ func PathAuthorizer(e *casbin.Enforcer) gin.HandlerFunc {
 	}
 }
 
+/*
 func ResourceAuthorizer(e *casbin.Enforcer, id string, obj string, act string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//Get user from JWT
@@ -61,11 +62,11 @@ func ResourceAuthorizer(e *casbin.Enforcer, id string, obj string, act string) g
 		}
 
 		v := reflect.Indirect(reflect.ValueOf(claim))
-		uid := 0
+		uid := ""
 		if v.FieldByName("UserID").IsValid() {
-			uid = int(v.FieldByName("UserID").Int())
+			uid = v.FieldByName("UserID").String()
 		}
-		if uid == 0 {
+		if uid == "" {
 			resp := map[string]string{"error": "no user id in claim"}
 			c.JSON(http.StatusBadRequest, resp)
 			c.Abort()
@@ -77,7 +78,8 @@ func ResourceAuthorizer(e *casbin.Enforcer, id string, obj string, act string) g
 
 		//Filter out all policies that the grants access to the user for the resource
 		if id == "all" {
-			ok = e.Enforce(strconv.Itoa(uid), obj, id, act)
+			log.Printf("[TEST] %s %s %s %s", uid, obj, id, act)
+			ok = e.GetFilteredPolicy(uid, obj, id, act)
 			if ok {
 				idi, err := strconv.Atoi(id)
 				if err != nil {
@@ -96,7 +98,7 @@ func ResourceAuthorizer(e *casbin.Enforcer, id string, obj string, act string) g
 				c.Abort()
 				return
 			}
-			ok = e.Enforce(strconv.Itoa(uid), obj, id, act)
+			ok = e.Enforce(uid, obj, id, act)
 			if ok {
 				idi, err := strconv.Atoi(id)
 				if err != nil {
@@ -115,153 +117,141 @@ func ResourceAuthorizer(e *casbin.Enforcer, id string, obj string, act string) g
 			return
 		}
 
-		c.Set("handlerInfo", map[string][]int{
-			"id":     ids,
-			"userID": []int{uid},
-		})
+		c.Set("resources", ids)
+		c.Set("userID", uid)
 		c.Next()
 	}
 }
+*/
 
-/*
-func getResources(c *gin.Context, e *casbin.Enforcer, ar authReq) ([]int, int, error) {
-	sub, err := getAttributeFromClaim(ar.claimStore, ar.claimID, c)
-	if err != nil {
-		return nil, http.StatusBadRequest, err
-	}
-
-	e.GetFilteredPolicy
-	ids, err := pc.Get(context.Background(), &ps.Filter{
-		Filters: []string{sub, ar.obj, ar.rid, ar.act},
-	})
-
-	if err != nil {
-		log.Printf("[ERROR] %s", err.Error())
-		return nil, http.StatusInternalServerError, errors.New("could not fetch resources")
-	}
-	var idList []int
-	for id := range ids.Resources {
-		idList = append(idList, int(id))
-	}
-	return idList, 200, nil
-}
-
-type authReq struct {
-	claimStore string
-	claimID    string
-	obj        string
-	rid        string
-	act        string
-	ids        []int
-	err        error
-	returnCode int
-}
-
-func FilterOutResources(e *casbin.Enforcer, obj string, rid string, act string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		authRequests := []authReq{}
-		authRequests = append(authRequests, authReq{"user", "UserID", obj, rid, act, []int{}, nil, 200})
-		authRequests = append(authRequests, authReq{"user", "Role", obj, rid, act, []int{}, nil, 200})
-
-		var wg sync.WaitGroup
-		wg.Add(len(authRequests))
-		for i := range authRequests {
-			go func(i int) {
-				defer wg.Done()
-				ids, rc, err := getResources(c, pc, authRequests[i])
-				if err != nil {
-					authRequests[i].err = err
-					authRequests[i].returnCode = rc
-				} else {
-					authRequests[i].ids = ids
-				}
-				return
-			}(i)
-		}
-		wg.Wait()
-
-		for _, v := range authRequests {
-			if v.err != nil {
-				c.JSON(v.returnCode, map[string]string{"error": v.err.Error()})
-				c.Abort()
-				return
-			}
-		}
-
-		var idList []int
-		for _, ar := range authRequests {
-			idList = append(idList, ar.ids...)
-		}
-		c.Set("ids", idList)
-		c.Next()
-	}
-}
-
-func getAttributeFromClaim(claimStoreID string, claimID string, c *gin.Context) (string, error) {
-	claim, ok := c.Get(claimStoreID)
+func extractClaim(c *gin.Context) (string, error) {
+	claim, ok := c.Get("user")
 	if !ok {
 		return "", errors.New("missing claim")
 	}
 
 	v := reflect.Indirect(reflect.ValueOf(claim))
-	var uid string
-	if v.FieldByName(claimID).IsValid() {
-		switch v.FieldByName(claimID).Interface().(type) {
-		case string:
-			uid = v.FieldByName(claimID).String()
-		case int:
-			uid = strconv.Itoa(int(v.FieldByName(claimID).Int()))
-		}
+	uid := ""
+	if v.FieldByName("UserID").IsValid() {
+		uid = v.FieldByName("UserID").String()
 	}
 	if uid == "" {
-		return "", errors.New("no " + claimID + " in claim")
+		return "", errors.New("no user id in claim")
 	}
-	log.Printf("[INFO] Got %s", uid)
+
 	return uid, nil
-
 }
-
-func returnError(c *gin.Context, err error, statusCode int) {
-	c.JSON(statusCode, map[string]string{"error": err.Error()})
-	c.Abort()
-}
-func FilterByRole(e *casbin.Enforcer, obj string, rid string, act string) gin.HandlerFunc {
+func ActionAuthorizer(e *casbin.Enforcer, id string, obj string, act string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		claim, ok := c.Get("user")
-		if !ok {
-			resp := map[string]string{"error": "missing claim"}
-			c.JSON(http.StatusBadRequest, resp)
-			c.Abort()
-			return
-		}
-
-		v := reflect.Indirect(reflect.ValueOf(claim))
-		var role string
-		if v.FieldByName("Role").IsValid() {
-			role = v.FieldByName("UserID").String()
-		}
-		if role == "" {
-			resp := map[string]string{"error": "no role in claim"}
-			c.JSON(http.StatusBadRequest, resp)
-			c.Abort()
-			return
-		}
-
-		var idList []int
-		ids, err := pc.Get(context.Background(), &ps.Filter{
-			Filters: []string{role, obj, rid, act},
-		})
+		//Get user from JWT
+		uid, err := extractClaim(c)
 		if err != nil {
-			resp := map[string]string{"error": "could not fetch resources"}
-			c.JSON(http.StatusInternalServerError, resp)
+			resp := map[string]string{"error": err.Error()}
+			c.JSON(http.StatusForbidden, resp)
 			c.Abort()
 			return
 		}
-		for id := range ids.Resources {
-			idList = append(idList, int(id))
+
+		if ok := e.Enforce(uid, obj, "*", act); !ok {
+			resp := map[string]string{"error": "no access to resource"}
+			c.JSON(http.StatusForbidden, resp)
+			c.Abort()
+			return
 		}
-		c.Set("ids", idList)
+		c.Set("userID", uid)
 		c.Next()
 	}
+}
+
+/*
+func ResourceAuthorizer(e *casbin.Enforcer, id string, obj string, act string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		//Get user from JWT
+		uid, err := extractClaim(c)
+		if err != nil {
+			resp := map[string]string{"error": err.Error()}
+			c.JSON(http.StatusForbidden, resp)
+			c.Abort()
+			return
+		}
+
+		//Get resource from path
+		var res bool
+		var ids []int
+
+		//Filter out all policies that the grants access to the user for the resource
+
+		if id == "all" {
+			res, err = e.EnforceSafe(uid, obj, act)
+			if err == nil && res {
+				idi, err := strconv.Atoi(id)
+				if err != nil {
+					resp := map[string]string{"error": "resource id should be number"}
+					c.JSON(http.StatusForbidden, resp)
+					c.Abort()
+					return
+				}
+				ids = append(ids, idi)
+			}
+		} else {
+			id := c.Param(id)
+			if id == "" {
+				resp := map[string]string{"error": "no resource id provided"}
+				c.JSON(http.StatusBadRequest, resp)
+				c.Abort()
+				return
+			}
+			res, err = e.EnforceSafe(strconv.Itoa(uid), obj, id, act)
+			if err == nil && res {
+				idi, err := strconv.Atoi(id)
+				if err != nil {
+					resp := map[string]string{"error": "resource id should be number"}
+					c.JSON(http.StatusForbidden, resp)
+					c.Abort()
+					return
+				}
+				ids = append(ids, idi)
+			}
+		}
+		if err != nil {
+			resp := map[string]string{"error": err.Error()}
+			c.JSON(http.StatusForbidden, resp)
+			c.Abort()
+			return
+		}
+		if !res {
+			resp := map[string]string{"error": "no access to resource"}
+			c.JSON(http.StatusForbidden, resp)
+			c.Abort()
+			return
+		}
+
+		c.Set("handlerInfo", map[string][]int{
+			"authorizedResources": ids,
+		})
+		c.Next()
+	}
+}
+
+func GetResourceIDS(sub string, obj string, oid string, re *regexp.Regexp, e *casbin.Enforcer) map[int]string {
+	var filters []string
+	if oid == "*" { //All resources ids that the use have access to
+		filters = append(filters, sub, obj)
+	} else {
+		filters = append(filters, sub, obj, oid)
+	}
+
+	i := make(map[int]string, 0)
+	for _, v := range e.GetFilteredPolicy(0, filters...) {
+		if len(v) == 4 {
+			if re.MatchString(v[3]) && v[2] != "*" {
+				it, err := strconv.Atoi(v[2])
+				if err == nil {
+					i[it] = v[3]
+				}
+			}
+		}
+	}
+	return i
 }
 */

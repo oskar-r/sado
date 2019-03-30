@@ -2,8 +2,10 @@ package data
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
+	"my-archive/backend/internal/utility"
 	"my-archive/backend/models"
 )
 
@@ -42,25 +44,90 @@ func (r *PSQLRepo) GetUser(ctx context.Context, username string, userID string) 
 }
 
 const storageSchema = "public.minio"
-const storageCredentialsQ = `SELECT ` + storageSchema + `.bucket_name, ` + storageSchema + `.bucket_credentials FROM ` + storageSchema + ` WHERE ` + storageSchema + `.user_id = $1 `
+const storageCredentialsQ = `SELECT ` + storageSchema + `.bucket_name, 
+	` + storageSchema + `.bucket_access_key, 
+	` + storageSchema + `.bucket_secret 
+	FROM ` + storageSchema +
+	` WHERE ` + storageSchema + `.user_id = $1 `
 
 func (r *PSQLRepo) GetStorageCredentials(ctx context.Context, userID string) (map[string]string, error) {
 
 	type TM struct {
-		Bucket      string
-		Credentials string
+		BucketName      string `db:"bucket_name"`
+		BucketAccessKey string `db:"bucket_access_key"`
+		BucketSecret    string `db:"bucket_secret"`
 	}
 	tm := TM{}
-	err := r.db.Select(&tm, storageCredentialsQ, userID)
+	log.Printf("[TEST] %s", userID)
+	err := r.db.Get(&tm, storageCredentialsQ, userID)
 	if err != nil {
 		log.Printf("[ERROR] %s", err.Error())
 		return nil, err
 	}
 
 	model := map[string]string{
-		"bucket":      tm.Bucket,
-		"credentials": tm.Credentials,
+		"bucket":     tm.BucketName,
+		"access-key": tm.BucketAccessKey,
+		"secret":     tm.BucketSecret,
 	}
 
 	return model, err
+}
+
+func (r *PSQLRepo) CreateUserAccount(ctx context.Context, user *models.NewUser) error {
+	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		log.Printf("[ERROR] %s", err.Error())
+		return err
+	}
+	err = createAccount(tx, user)
+	if err != nil {
+		log.Printf("[ERROR] %s", err.Error())
+		err2 := tx.Rollback()
+		if err2 != nil {
+			log.Printf("[ERROR] %s", err2.Error())
+		}
+		return err
+	}
+	err = createBucket(tx, user)
+	if err != nil {
+		err2 := tx.Rollback()
+		if err2 != nil {
+			log.Printf("[ERROR] %s", err2.Error())
+		}
+		return err
+	}
+	return tx.Commit()
+}
+
+const createUserAccountQ = `INSERT INTO users(
+	username, 
+	user_id,
+	user_pass) VALUES($1,$2,$3)`
+
+func createAccount(tx *sql.Tx, user *models.NewUser) error {
+	res, err := tx.Exec(createUserAccountQ, user.Username, user.UserID, user.BCryptPassword)
+	return utility.ExecReturn(res, err)
+}
+
+const createUserBucketQ = `INSERT INTO minio(
+	user_id, 
+	bucket_name,
+	bucket_secret, 
+	bucket_access_key) VALUES($1,$2,$3,$4)`
+
+func createBucket(tx *sql.Tx, user *models.NewUser) error {
+	res, err := tx.Exec(createUserBucketQ, user.UserID, user.MyBucket, user.AESPassword, user.UserID)
+	return utility.ExecReturn(res, err)
+}
+
+const getAppConfig = `SELECT configuration FROM app_config WHERE role = $1`
+
+func (r *PSQLRepo) GetAppConfig(ctx context.Context, role string) (string, error) {
+	var cfg string
+	err := r.db.Get(&cfg, getAppConfig, role)
+	if err != nil {
+		log.Printf("[ERROR] %s", err.Error())
+	}
+	return cfg, err
 }

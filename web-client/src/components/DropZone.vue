@@ -8,12 +8,10 @@
         <span class="drop-files">Drop file here</span>
       </div>
     </form>
-    <button @click="upload">Upload</button>
   </div>
 </template>
 
 <script>
-  import axios from 'axios'
   export default {
     data(){
       return {
@@ -96,13 +94,16 @@
 </script>
 
 <style scoped>
+#file-drag-drop {
+     padding-top:40px;
+}
   form{
     display: block;
     height: 400px;
     width: 400px;
     background: #ccc;
     margin: auto;
-    margin-top: 40px;
+
     text-align: center;
     line-height: normal;
     border-radius: 10px;

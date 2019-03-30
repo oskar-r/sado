@@ -1,35 +1,59 @@
 package handlers
 
 import (
-	"fmt"
+	"my-archive/backend"
+	"my-archive/backend/models"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func CreateAccount() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		g, err := strconv.Atoi(c.Param("id"))
+		u := models.NewUser{}
+		err := c.Bind(&u)
 		if err != nil {
 			resp := map[string]string{"error": err.Error()}
 			c.JSON(http.StatusBadRequest, resp)
 			c.Abort()
 			return
 		}
-		fmt.Printf("%+v\n", g)
+		err = backend.SetUpUserAccount(&u)
+
+		if err != nil {
+			resp := map[string]string{"error": err.Error()}
+			c.JSON(http.StatusBadRequest, resp)
+			c.Abort()
+			return
+		}
+		//map from new user to user
+
+		c.JSON(http.StatusOK, models.User{
+			Username: u.Username,
+			UserID:   u.UserID,
+			MyBucket: u.MyBucket,
+		})
+		c.Done()
+		return
 	}
 }
 
-func Login() gin.HandlerFunc {
+func Config() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		g, err := strconv.Atoi(c.Param("id"))
+		user, err := extractUserFromClaim(c)
 		if err != nil {
-			resp := map[string]string{"error": err.Error()}
-			c.JSON(http.StatusBadRequest, resp)
+			c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
 			c.Abort()
 			return
 		}
-		fmt.Printf("%+v\n", g)
+		cfg, err := backend.GetAppConfig(user)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+			c.Abort()
+			return
+		}
+		c.JSON(200, cfg)
+		c.Done()
+		return
 	}
 }

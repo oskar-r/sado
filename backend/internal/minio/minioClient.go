@@ -2,10 +2,12 @@ package minio
 
 import (
 	"log"
+	"my-archive/backend/internal/config"
 
 	"github.com/minio/minio-go"
 )
 
+//mc admin user add roman/my_bucket f5547634-2c08-4780-bda3-e446771c6a2c testtest readwrite
 func mainMionio() {
 	endpoint := "minio.roman.nu"
 	accessKeyID := "oskar"
@@ -24,4 +26,13 @@ func mainMionio() {
 
 	log.Printf("%#v\n", policy) // minioClient is now setup
 
+}
+
+func ConnectToMinio(userID, creds string) (*minio.Client, error) {
+	mc, err := minio.New(config.Get("minio-server"), userID, creds, true)
+	if err != nil {
+		log.Printf("[ERROR] Creating client: %+v", err)
+		return nil, err
+	}
+	return mc, err
 }

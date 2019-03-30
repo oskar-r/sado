@@ -23,7 +23,7 @@ export default {
       // let reader = new FileReader();
       oReq.send(file)
       */
-      Api().post('user/upload?name=' + file.name,
+      Api().post('user/upload?name=' + btoa(file.name) + '&content-type=' + btoa(file.type),
         file).then((response) => {
         console.log(response)
         resolve(true)

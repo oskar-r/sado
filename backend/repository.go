@@ -22,6 +22,8 @@ type AuthzRepository interface {
 type UserRepository interface {
 	GetUser(ctx context.Context, username string, userID string) (models.User, error)
 	GetStorageCredentials(ctx context.Context, userID string) (map[string]string, error)
+	CreateUserAccount(ctx context.Context, user *models.NewUser) error
+	GetAppConfig(ctx context.Context, role string) (string, error)
 }
 
 type Repository interface {

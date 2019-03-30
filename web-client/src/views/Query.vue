@@ -1,15 +1,15 @@
 <template>
     <b-container fluid>
-      <DropZone />
+      <QueryField />
     </b-container>
 </template>
 
 <script>
-import DropZone from '@/components/DropZone'
+import QueryField from '@/components/QueryField'
 export default {
-  name: 'home',
+  name: 'query',
   components: {
-    DropZone
+    QueryField
   }
 }
 </script>

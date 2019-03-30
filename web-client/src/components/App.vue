@@ -1,20 +1,23 @@
 <template>
-  <b-container id="app">
-    <div id="main-view">
+  <b-container fluid id="app">
+    <div id="main-view" v-if="isLogedIn">
       <ErrorBadge />
-      <div class="wrapper">
         <div id="sidebar">
           <div id="sidebar-logo">
             <img :src="logo" />
           </div>
-          <router-link v-for="route in routes" v-bind:to=route.to class="nav-item" :key=route.to>
-            <span class="icon-span">
-              <i class="material-icons">{{route.icon}}</i>
-            </span>
-            <span>
-              {{route.text}}
-            </span>
-          </router-link>
+
+          <b-nav vertical class="w-100">
+            <b-nav-item class="nav-item" v-for="route in routes" :key=route.to>
+              <router-link v-bind:to=route.to class="nav-item" :key=route.to>
+                <div class="icon-span">
+                  <i class="material-icons">{{route.icon}}</i>
+                  <span class="menu-text"> {{route.text}}</span>
+                </div>
+              </router-link>
+            </b-nav-item>
+          </b-nav>
+
           <a href="#" class="log-out-item nav-item" @click="logOut" >
             <span class="icon-span">
               <i class="material-icons">exit_to_app</i>
@@ -24,8 +27,10 @@
             </span>
           </a>
         </div>
-      </div>
       <router-view/>
+    </div>
+     <div id="login-view" v-else>
+      <Login/>
     </div>
   </b-container>
 </template>
@@ -34,27 +39,61 @@
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import TopBar from './TopBar'
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import ErrorBadge from './ErrorBadge'
+import Login from '../views/Login'
 export default {
-  components: {ErrorBadge, TopBar },
+  components: {Login, ErrorBadge, TopBar },
   data () {
     return {
       logo: require('../assets/logo.png')
     }
   },
   created () {
+     if (this.isLogedIn) {
+      console.log('LOGEDIN' + this.isLogedIn)
+      this.$store.dispatch('mainStore/getAppConfig').then((resp) => {
+        console.log(resp)
+        // this.$store.dispatch('mainStore/getBaseData')
+      }).catch((err)=>{
+        console.error(err)
+      })
 
+      this.$store.dispatch('mainStore/getMyDatasets')
+    }
   },
   methods: {
     logOut() {
+      console.log('log out')
+      this.$store.dispatch('mainStore/logOut')
+    },
+    set (set) {
+      console.log(set)
+      if (set == 'datasets') {
+        return this.datasets
+      }
+      return this.documents
+    },
+    dropdown(e, data) {
+        this.set[data] = []
+        this.set[data] = this[data]
+        console.log(this.set)
+      /*
+      if (Array.isArray(set)) {
+        set.forEach((item) => {
+          e.target.parentElement.append
+        })
+      }*/
       
+      console.log(e.target.parentElement)
     }
   },
   computed: {
     ...mapGetters('mainStore', {
       isLogedIn: 'isLogedIn',
-      routes: 'appRoutes'
+      routes: 'appRoutes',
+      datasets: 'getDatasets',
+      documents: 'getDocuments'
     })
   }
 }
@@ -79,7 +118,8 @@ export default {
   background-color: #f5f5f5;
   min-height: 100vh;
   height: 100%;
-  border-right:5px white solid;
+  margin: 0;
+  padding: 0;
 }
 .material-icons {
   font-family: 'Material Icons';
@@ -105,16 +145,10 @@ export default {
   /* Support for IE. */
   font-feature-settings: 'liga';
 }
-.wrapper {
-    display: flex;
-    width: 100%;
-}
+
 
 #sidebar {
-    width: 250px;
-    position: fixed;
-    top: 0;
-    left: 0;
+    float: left;
     height: 100vh;
     z-index: 999;
     background: #fff;
@@ -123,30 +157,24 @@ export default {
 }
 #sidebar-logo {
   display: block;
-  width: 300px;
-  height:75px;
   background: no-repeat;
   background-size:100%;
-  margin-bottom:50px;
-  margin-top:5px;
+  margin:0 0 30px 0;
 }
-div#sidebar-logo > img {
-  width: 300px;
-}
+
 .nav-item {
   display: block;
   text-align: left;
-  margin-left:30px;
-  margin-bottom:20px;
 }
 .icon-span {
   display: block;
   float: left;
   margin-right: 9px;
 }
-.base-view-box {
- 
- }
+.menu-text{
+  height:24px;
+  vertical-align: top;
+}
  .log-out-item {
     position: absolute;
     bottom: 0;

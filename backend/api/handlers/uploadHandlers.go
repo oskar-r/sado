@@ -2,13 +2,11 @@ package handlers
 
 import (
 	"my-archive/backend"
-	"log"
 	"my-archive/backend/models"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-
 )
 
 func Upload() gin.HandlerFunc {
@@ -28,7 +26,9 @@ func Upload() gin.HandlerFunc {
 		}
 		i, err := backend.UploadFile(user, c.Request)
 		if err != nil {
-			log.Fatalln(err)
+			c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+			c.Abort()
+			return
 		}
 		type Test struct {
 			msg string
@@ -37,10 +37,6 @@ func Upload() gin.HandlerFunc {
 		c.JSON(200, &Test{`{"bytes":` + strconv.Itoa(int(i)) + `}`})
 		c.Done()
 		return
-
-		
-
-		
 
 		// key := config.Get("cipher-key")
 
@@ -87,6 +83,6 @@ func Upload() gin.HandlerFunc {
 		})
 		log.Printf("Size: %+v\n", n2)
 		*/
-		
+
 	}
 }

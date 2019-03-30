@@ -17,6 +17,7 @@ type Conf struct {
 	listenAndServe      string
 	awsID               string
 	awsSecret           string
+	s3server            string
 	policyModel         string
 	cipherKey           string
 }
@@ -35,11 +36,12 @@ func SetConfType() *Conf {
 		config.port = os.Getenv("PORT")
 	}
 
-	if os.Getenv("MINIO_CLIENT_ID") == "" || os.Getenv("MINIO_CLIENT_SECRET") == "" {
+	if os.Getenv("MINIO_CLIENT_ID") == "" || os.Getenv("MINIO_CLIENT_SECRET") == "" || os.Getenv("MINIO_SERVER") == "" {
 		log.Fatal("No minio credentials set\n")
 	} else {
 		config.awsID = os.Getenv("MINIO_CLIENT_ID")
 		config.awsSecret = os.Getenv("MINIO_CLIENT_SECRET")
+		config.s3server = os.Getenv("MINIO_SERVER")
 	}
 
 	switch config.environment {
@@ -105,6 +107,12 @@ func (c *Conf) Get(option string) string {
 		return c.policyModel
 	case "cipher-key":
 		return c.cipherKey
+	case "minio-server":
+		return c.s3server
+	case "minio-key":
+		return c.awsID
+	case "minio-secret":
+		return c.awsSecret
 	}
 	return ""
 }

@@ -1,19 +1,18 @@
 import BaseData from '../../api/BaseData'
 import Upload from '../../api/Upload'
+import Login from '../../api/Login'
+import Datasets from '../../api/Datasets'
 
 const state = {
+  logedIn: Login.logedIn(),
   username: localStorage.username,
   identifier: localStorage.identifier,
   error: {
     code: 0,
     message: ''
   },
-  baseData: {
-    numberOfUsers: 0,
-    latestUsers: [],
-    activeUsers: 0,
-    activeUsersWeekly: 0
-  },
+  datasets: [],
+  documents: [],
   appRoutes: [],
   roles: [],
   activeRole: ''
@@ -35,18 +34,6 @@ const getters = {
   getBaseData () {
     return state.baseData
   },
-  getNumberOfUsers () {
-    return state.baseData.numberOfUsers
-  },
-  getLatestUsers () {
-    return state.baseData.latestUsers
-  },
-  getActiveUsers () {
-    return state.baseData.activeUsers
-  },
-  getActiveUsersWeekly () {
-    return state.baseData.activeUsersWeekly
-  },
   appRoutes () {
     return state.appRoutes
   },
@@ -55,11 +42,26 @@ const getters = {
   },
   getActiveRole () {
     return state.activeRole
+  },
+  getDatasets () {
+    return state.datasets
+  },
+  getNamedDatasets (name) {
+    var i = -1
+    state.datasets.forEach((item, index) => {
+      if (item.name === name) {
+        i = index
+      }
+    })
+    if (i > -1) {
+      return state.datasets[i]
+    }
+    return null
   }
 }
 // mutatations
 const mutations = {
-  setLogoOutState (state, newState) {
+  setLogedIn (state, newState) {
     state.logedIn = newState
   },
   setAppRoutes (state, routes) {
@@ -90,26 +92,60 @@ const mutations = {
   setRoles (state, roles) {
     state.roles = roles
   },
-  setActiveRoles (state, role) {
+  setActiveRole (state, role) {
     state.activeRole = role
   },
-  setBaseData (state, value) {
-    state.baseData = value
+  setDatasets (state, sets) {
+    state.datasets = sets
+  },
+  setDataset (state, set) {
+    state.datasets.push(set)
+  },
+  setPreviewDetails (state, preview, filename) {
+    state.datasets.forEach((item, index) => {
+      if (item.name === filename) {
+        // state.datasets[index].preview = preview
+      }
+    })
   }
 }
 // actions
 const actions = {
-  logOut ({ commit }) {
-    commit('setLogoOutState', false)
-  },
-  getBaseData ({ commit }) {
-    BaseData.get().then((resp) => {
-      commit('setBaseData', {
-        numberOfUsers: resp.number_of_users,
-        latestUsers: resp.latest_registrations,
-        activeUsers: resp.active_users,
-        activeUsersWeekly: resp.active_users_weekly
+  logIn ({ commit }, creds) {
+    return new Promise((resolve, reject) => {
+      Login.logIn(creds.username, creds.password).then((resp) => {
+        console.log(resp)
+        commit('setLogedIn', true)
+        commit('setIdentifier', resp.identifier)
+        commit('setUsername', resp.username)
+        commit('setActiveRole', resp.role)
+        resolve(resp)
+      }).catch((error) => {
+        commit('setErrorMessage', { message: 'Ett fel intäffade vid inloggning', code: 403 })
+        console.log(error)
+        commit('setLogedIn', false)
+        commit('setIdentifier', '')
+        commit('setUsername', '')
+        reject(error)
       })
+    }).catch((error) => {
+      console.log(error)
+    })
+  },
+  logOut ({ commit }) {
+    commit('setLogedIn', false)
+  },
+  getAppConfig ({ commit }) {
+    BaseData.getAppConfig().then((resp) => {
+      console.log(resp)
+      if (resp.routes !== undefined) {
+        resp.routes.sort((a, b) => a.order - b.order)
+        commit('setAppRoutes', resp.routes)
+      } else {
+        commit('setAppRoutes', [])
+      }
+      commit('setRoles', resp.roles)
+      commit('setActiveRole', resp.active_role)
     }).catch((error) => {
       console.error(error.response)
       var e = {
@@ -121,7 +157,7 @@ const actions = {
           case 403:
             e.message = error.response.data
             e.code = error.response.status
-            commit('setLogoOutState', false)
+            commit('setLogedIn', false)
             break
           case 500:
             e.message = 'Server error'
@@ -132,36 +168,22 @@ const actions = {
       }
     })
   },
-  getAppConfig ({ commit }) {
-    BaseData.getAppConfig().then((resp) => {
-      if (resp.UI_routers !== undefined) {
-        resp.UI_routers.sort((a, b) => a.order - b.order)
-        commit('setAppRoutes', resp.UI_routers)
-      } else {
-        commit('setAppRoutes', [])
-      }
-      commit('setRoles', resp.roles)
-      commit('setActiveRoles', resp.active_role)
+  getMyDatasets ({ commit }) {
+    Datasets.get().then((resp) => {
+      commit('setDatasets', resp)
     }).catch((error) => {
-      console.error(error.response)
-      var e = {
-        message: 'Can´t get response from server - Is internet working properly?',
-        code: ''
-      }
-      if (error.response !== undefined && error.response.status !== undefined) {
-        switch (error.response.status) {
-          case 403:
-            e.message = error.response.data
-            e.code = error.response.status
-            commit('setLogoOutState', false)
-            break
-          case 500:
-            e.message = 'Server error'
-            e.code = error.response.status
-            commit('setErrorMessage', e)
-            break
-        }
-      }
+      console.log(error)
+    })
+  },
+  previewFile ({ commit }, filename) {
+    return new Promise((resolve, reject) => {
+      Datasets.preview(filename).then((resp) => {
+        commit('setPreviewDetails', resp, filename)
+        resolve(resp)
+      }).catch((error) => {
+        console.error(error)
+        reject(error)
+      })
     })
   },
   showErrorMessage ({ commit }, error) {

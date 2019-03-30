@@ -7,6 +7,7 @@ vendor
 /web-client/tests/e2e/reports/
 selenium-debug.log
 
+testcode
 # local env files
 .env.local
 .env.*.local

@@ -7,7 +7,7 @@ export default () => {
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + localStorage.getItem('jwt')
+      'Authorization': 'Bearer ' + JSON.parse(localStorage.getItem('jwt'))
     }
   })
 }

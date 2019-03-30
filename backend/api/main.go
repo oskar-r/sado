@@ -22,6 +22,7 @@ import (
 
 func main() {
 	log.Printf("[INFO] Starting up archive backend service")
+	log.SetFlags(log.Llongfile)
 	cfg := appConf.SetConfType()
 	config.Set(cfg)
 
@@ -62,7 +63,7 @@ func main() {
 	adm.Use(aum.MiddlewareFunc())
 	adm.Use(am.PathAuthorizer(e))
 	{
-		adm.POST("/create-account", am.ResourceAuthorizer(e, "id", "create-account", "write"), handlers.CreateAccount())
+		adm.POST("/create-account", am.ActionAuthorizer(e, "*", "create-account", "write"), handlers.CreateAccount())
 	}
 
 	usr := r.Group("/user")
@@ -70,6 +71,10 @@ func main() {
 	usr.Use(am.PathAuthorizer(e))
 	{
 		usr.POST("/upload", handlers.Upload())
+		usr.POST("/query", handlers.Query())
+		usr.GET("/preview", handlers.Preview())
+		usr.GET("/config", handlers.Config())
+		usr.GET("/datasets", handlers.ListMyData())
 	}
 	log.Printf("[INFO] service started at %s", cfg.Get("server"))
 	if err := http.ListenAndServe(cfg.Get("server"), r); err != nil {
