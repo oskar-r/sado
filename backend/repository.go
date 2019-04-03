@@ -5,6 +5,7 @@ import (
 	"my-archive/backend/models"
 
 	"github.com/casbin/casbin/model"
+	"github.com/gorilla/websocket"
 )
 
 type Utility interface {
@@ -26,8 +27,15 @@ type UserRepository interface {
 	GetAppConfig(ctx context.Context, role string) (string, error)
 }
 
+type SessionStore interface {
+	SaveSession(id string, conn *websocket.Conn) error
+	DeleteSession(id string) error
+	GetSession(id string) (*websocket.Conn, error)
+}
+
 type Repository interface {
 	AuthzRepository
 	UserRepository
 	Utility
+	SessionStore
 }

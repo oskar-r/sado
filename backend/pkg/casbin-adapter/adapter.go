@@ -25,7 +25,7 @@ import (
 
 // Adapter represents the MySQL adapter for policy storage.
 type Adapter struct {
-	db *data.PSQLRepo
+	db *data.Repos
 }
 
 // NewAdapter is the constructor for Adapter.

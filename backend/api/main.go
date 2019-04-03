@@ -1,23 +1,24 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"my-archive/backend"
 	"my-archive/backend/api/handlers"
+	"my-archive/backend/api/wshandlers"
 	appConf "my-archive/backend/config"
 	"my-archive/backend/data"
 	"my-archive/backend/internal/config"
 	am "my-archive/backend/internal/middleware"
-	"my-archive/backend/internal/utility"
 	casbinadaptor "my-archive/backend/pkg/casbin-adapter"
 	"my-archive/backend/usecase"
 	"net/http"
+	"time"
 
 	"github.com/casbin/casbin"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
-	validator "gopkg.in/go-playground/validator.v8"
+	nats "github.com/nats-io/go-nats"
 )
 
 func main() {
@@ -26,14 +27,13 @@ func main() {
 	cfg := appConf.SetConfType()
 	config.Set(cfg)
 
-	v, ok := binding.Validator.Engine().(*validator.Validate)
-	if ok {
-		v.RegisterValidation("formida_name", utility.FormidaName)
-	}
-
 	repo, err := data.NewPSQL(config.Get("sqlcon-main"))
 	if err != nil {
 		log.Fatalf("[ERROR] Could not connect to DB: %s", err.Error())
+	}
+	err = repo.Ping()
+	if err != nil {
+		log.Fatalf("[ERROR] Can´t ping DB %s", err.Error())
 	}
 
 	//e := casbin.NewEnforcer(config.Get("policy-model"), pgAdd.NewMysqlAdapter("", config.Get("mysqlcon")))
@@ -43,6 +43,29 @@ func main() {
 	s := usecase.NewUseCase(repo, "Europe/Stockholm", e)
 	backend.SetUC(s)
 
+	httpRoutes, err := setupHTTPServer(e)
+
+	wsRoutes, err := setupWebsockets()
+
+	if err = messageConnection(); err != nil {
+		log.Fatal("[ERROR] %s", err.Error())
+	}
+
+	if err != nil {
+		log.Fatalf("[ERROR] %s", err.Error())
+	}
+
+	//Start http server
+	go func() {
+		log.Printf("[INFO] service started at %s", cfg.Get("server"))
+		log.Fatal(http.ListenAndServe(cfg.Get("server"), httpRoutes))
+	}()
+
+	log.Printf("[INFO] websocket service started at %s", cfg.Get("ws-server"))
+	log.Fatal(http.ListenAndServe(cfg.Get("ws-server"), wsRoutes))
+}
+
+func setupHTTPServer(e *casbin.Enforcer) (*gin.Engine, error) {
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
@@ -53,7 +76,7 @@ func main() {
 
 	aum, err := am.AuthMiddleware()
 	if err != nil {
-		log.Fatal("JWT Error:" + err.Error())
+		return nil, errors.New("JWT Error:" + err.Error())
 	}
 
 	r.POST("/login", aum.LoginHandler)
@@ -76,8 +99,53 @@ func main() {
 		usr.GET("/config", handlers.Config())
 		usr.GET("/datasets", handlers.ListMyData())
 	}
-	log.Printf("[INFO] service started at %s", cfg.Get("server"))
-	if err := http.ListenAndServe(cfg.Get("server"), r); err != nil {
-		log.Fatal(err)
+	return r, nil
+}
+
+func setupWebsockets() (*gin.Engine, error) {
+	r := gin.New()
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+	r.GET("/", wshandlers.ServeWS())
+
+	return r, nil
+}
+
+func messageConnection() error {
+	// Connect Options.
+	opts := []nats.Option{nats.Name("Test Subscriber")}
+	opts = setupConnOptions(opts)
+	opts = append(opts, nats.UserInfo("oskar", "test123"))
+
+	nc, err := nats.Connect(config.Get("nats-server"), opts...)
+	if err != nil {
+		return err
 	}
+	log.Printf("[INFO] Connected to nats: %s", config.Get("nats-server"))
+	nc.Subscribe("minio-events", func(m *nats.Msg) {
+		log.Printf("[DEBUG] %+v", string(m.Data))
+		err = backend.ForwardMessage(m.Data)
+		if err != nil && err.Error() != "session not found" {
+			log.Printf("[ERROR] could not forward message %s", err.Error())
+		}
+	})
+	return nil
+}
+
+func setupConnOptions(opts []nats.Option) []nats.Option {
+	totalWait := 10 * time.Minute
+	reconnectDelay := time.Second
+
+	opts = append(opts, nats.ReconnectWait(reconnectDelay))
+	opts = append(opts, nats.MaxReconnects(int(totalWait/reconnectDelay)))
+	opts = append(opts, nats.DisconnectHandler(func(nc *nats.Conn) {
+		log.Printf("Disconnected: will attempt reconnects for %.0fm", totalWait.Minutes())
+	}))
+	opts = append(opts, nats.ReconnectHandler(func(nc *nats.Conn) {
+		log.Printf("Reconnected [%s]", nc.ConnectedUrl())
+	}))
+	opts = append(opts, nats.ClosedHandler(func(nc *nats.Conn) {
+		log.Fatal("Exiting, no servers available")
+	}))
+	return opts
 }

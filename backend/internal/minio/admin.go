@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"my-archive/backend/internal/config"
+	"strconv"
 
 	"github.com/minio/minio/pkg/madmin"
 )
 
 func CreateUser(accessKey, secret, bucket string) error {
-	mdmClnt, err := madmin.New(config.Get("minio-server"), config.Get("minio-key"), config.Get("minio-secret"), true)
+	https, _ := strconv.ParseBool(config.Get("minio-https"))
+	mdmClnt, err := madmin.New(config.Get("minio-server"), config.Get("minio-key"), config.Get("minio-secret"), https)
 	if err != nil {
 		fmt.Println(err)
 		return err

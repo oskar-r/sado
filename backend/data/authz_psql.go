@@ -19,7 +19,7 @@ const (
 	numberOfColumns = 5
 )
 
-func (r *PSQLRepo) CreatePolicyDB() error {
+func (r *Repos) CreatePolicyDB() error {
 
 	_, err := r.db.Exec("CREATE SCHEMA IF NOT EXISTS " + schema)
 	if err != nil {
@@ -41,7 +41,7 @@ func (r *PSQLRepo) CreatePolicyDB() error {
 	return nil
 }
 
-func (r *PSQLRepo) DropPolicyDB() error {
+func (r *Repos) DropPolicyDB() error {
 	_, err := r.db.Exec(`DROP table ` + schema + `.` + table)
 	if err != nil {
 		panic(err)
@@ -49,7 +49,7 @@ func (r *PSQLRepo) DropPolicyDB() error {
 	return err
 }
 
-func (r *PSQLRepo) LoadPolicies(namespace string) ([]string, error) {
+func (r *Repos) LoadPolicies(namespace string) ([]string, error) {
 
 	rows, err := r.db.Query(`SELECT ` + ptype + `,` + sub + `,` + obj + `,` + oid + `,` + act + ` FROM ` + schema + `.` + table)
 	if err != nil {
@@ -95,7 +95,7 @@ func (r *PSQLRepo) LoadPolicies(namespace string) ([]string, error) {
 
 var insertPolicy = `INSERT INTO ` + schema + `.` + table + ` VALUES(` + strings.TrimRight(strings.Repeat("?,", numberOfColumns), ",") + `)`
 
-func (r *PSQLRepo) SaveAllPolicy(namespace string, model model.Model) error {
+func (r *Repos) SaveAllPolicy(namespace string, model model.Model) error {
 
 	stm, err := r.db.Prepare(insertPolicy)
 	if err != nil {
@@ -121,7 +121,7 @@ func (r *PSQLRepo) SaveAllPolicy(namespace string, model model.Model) error {
 	return nil
 }
 
-func (r *PSQLRepo) AddPolicy(i []interface{}) (int64, error) {
+func (r *Repos) AddPolicy(i []interface{}) (int64, error) {
 	var ri int64
 	res, err := r.db.Exec(insertPolicy, i...)
 
@@ -149,7 +149,7 @@ const deletePolicy = `DELETE FROM ` + schema + `.` + table + ` WHERE
 		'` + oid + `=$4
 		,` + act + `=$5`
 
-func (r *PSQLRepo) DeletePolicy(i []interface{}) (int64, error) {
+func (r *Repos) DeletePolicy(i []interface{}) (int64, error) {
 	res, err := r.db.Exec(createDeleteQuery(len(i)), i...)
 	if err != nil {
 		return 0, err

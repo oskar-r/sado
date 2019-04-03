@@ -1,31 +1,3 @@
-<!--<template>
-     <div class="file-table">
-      <b-table 
-        striped 
-        responsive 
-        borderless 
-        text-left
-        head-variant='dark'
-        :fields="fields" 
-        :items="files"> 
-       <span slot="iconName" slot-scope="data" v-html="data.value" />
-       <template>
-       <b-form-checkbox @change="row.toggleDetails" v-model="row.detailsShowing">
-          Details via check
-        </b-form-checkbox>
-       </template>
-       <template slot="row-details" slot-scope="row">
-        <b-card>
-          <b-row class="mb-2">
-            <b-col sm="3" class="text-sm-right"><b>Age:</b></b-col>
-            <b-col>{{ row.item}}</b-col>
-          </b-row>
-          <b-button size="sm" @click="row.toggleDetails">Hide Details</b-button>
-        </b-card>
-      </template>
-      </b-table>
-    </div>
-</template>-->
 <template>
   <div class="file-table">
     <b-table striped 

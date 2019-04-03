@@ -37,3 +37,7 @@ npm run test:unit
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+### Potential use cases to implemenet
+Share files with other users
+Simple data prep and mappings

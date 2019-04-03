@@ -50,11 +50,8 @@ func (uc *usecase) SetUpUserAccount(user *models.NewUser) error {
 	}
 	user.AESPassword = str
 
-	uuid, err := uuid.NewV4()
-	if err != nil {
-		log.Printf("[ERROR] %+v", err)
-		return err
-	}
+	uuid := uuid.NewV4()
+
 	user.UserID = uuid.String()
 
 	err = minio.CreateDefaultBucket(user.MyBucket)

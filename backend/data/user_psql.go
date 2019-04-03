@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"my-archive/backend/internal/utility"
@@ -13,7 +14,7 @@ const userSchema = "public.users"
 
 const userAndRolesQ = `SELECT ` + userSchema + `.username, ` + userSchema + `.user_id, ` + userSchema + `.user_pass FROM ` + userSchema + ` WHERE %s = $1 `
 
-func (r *PSQLRepo) GetUser(ctx context.Context, username string, userID string) (models.User, error) {
+func (r *Repos) GetUser(ctx context.Context, username string, userID string) (models.User, error) {
 	u := []models.User{}
 	um := models.User{}
 
@@ -26,16 +27,22 @@ func (r *PSQLRepo) GetUser(ctx context.Context, username string, userID string) 
 		q = fmt.Sprintf(userAndRolesQ, userSchema+".username")
 		err = r.db.Select(&u, q, username)
 	}
-
 	if err != nil {
 		log.Printf("[ERROR] %s", err.Error())
 		return um, err
 	}
+
+	if len(u) == 0 {
+		log.Printf("[ERROR] User %s does not exits", username)
+		return um, errors.New("User does not exist")
+	}
+
 	var roles []string
 
 	for _, v := range u {
 		roles = append(roles, v.CurrentRole)
 	}
+
 	um = u[0]
 	um.Roles = roles
 	um.Username = username
@@ -50,7 +57,7 @@ const storageCredentialsQ = `SELECT ` + storageSchema + `.bucket_name,
 	FROM ` + storageSchema +
 	` WHERE ` + storageSchema + `.user_id = $1 `
 
-func (r *PSQLRepo) GetStorageCredentials(ctx context.Context, userID string) (map[string]string, error) {
+func (r *Repos) GetStorageCredentials(ctx context.Context, userID string) (map[string]string, error) {
 
 	type TM struct {
 		BucketName      string `db:"bucket_name"`
@@ -74,7 +81,7 @@ func (r *PSQLRepo) GetStorageCredentials(ctx context.Context, userID string) (ma
 	return model, err
 }
 
-func (r *PSQLRepo) CreateUserAccount(ctx context.Context, user *models.NewUser) error {
+func (r *Repos) CreateUserAccount(ctx context.Context, user *models.NewUser) error {
 	tx, err := r.db.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
 		log.Printf("[ERROR] %s", err.Error())
@@ -123,7 +130,7 @@ func createBucket(tx *sql.Tx, user *models.NewUser) error {
 
 const getAppConfig = `SELECT configuration FROM app_config WHERE role = $1`
 
-func (r *PSQLRepo) GetAppConfig(ctx context.Context, role string) (string, error) {
+func (r *Repos) GetAppConfig(ctx context.Context, role string) (string, error) {
 	var cfg string
 	err := r.db.Get(&cfg, getAppConfig, role)
 	if err != nil {

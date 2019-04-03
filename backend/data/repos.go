@@ -4,29 +4,33 @@ import (
 	"fmt"
 	"runtime"
 
+	"github.com/gorilla/websocket"
 	"github.com/jmoiron/sqlx"
 )
 
-type PSQLRepo struct {
-	db *sqlx.DB
+type Repos struct {
+	db           *sqlx.DB
+	sessionStore map[string]*websocket.Conn
 }
 
-func NewPSQL(connectionString string) (*PSQLRepo, error) {
+func NewPSQL(connectionString string) (*Repos, error) {
 	db, err := sqlx.Open("postgres", connectionString)
 	if err != nil {
 		return nil, err
 	}
+	ss := make(map[string]*websocket.Conn, 0)
 
-	return &PSQLRepo{
+	return &Repos{
 		db,
+		ss,
 	}, nil
 }
 
-func (r *PSQLRepo) Close() {
+func (r *Repos) Close() {
 	r.db.Close()
 }
 
-func (r *PSQLRepo) Ping() error {
+func (r *Repos) Ping() error {
 	return r.db.Ping()
 }
 func Debug() string {

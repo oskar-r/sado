@@ -42,6 +42,8 @@ import TopBar from './TopBar'
 import { mapGetters, mapState } from 'vuex'
 import ErrorBadge from './ErrorBadge'
 import Login from '../views/Login'
+import * as ws from '../utility/websockets.js'
+
 export default {
   components: {Login, ErrorBadge, TopBar },
   data () {
@@ -58,7 +60,7 @@ export default {
       }).catch((err)=>{
         console.error(err)
       })
-
+      ws.connect('ws://localhost:8092', this.$store)
       this.$store.dispatch('mainStore/getMyDatasets')
     }
   },

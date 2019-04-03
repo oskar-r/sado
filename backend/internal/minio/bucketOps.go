@@ -47,7 +47,9 @@ func ListDatasetsInBucket(userID, secret, bucket string) ([]models.DataSet, erro
 		}
 		objects = append(objects, oi)
 	}
-
+	if len(objects) == 0 {
+		return nil, errors.New("no files")
+	}
 	var ds []models.DataSet
 	for _, v := range objects {
 		cat := "document"

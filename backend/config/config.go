@@ -7,6 +7,7 @@ import (
 
 type Conf struct {
 	port                string
+	wsPort              string
 	environment         string
 	rsaPrivate          string
 	rsaPublic           string
@@ -15,11 +16,14 @@ type Conf struct {
 	migrationDate       string
 	origin              string
 	listenAndServe      string
+	wsServer            string
 	awsID               string
 	awsSecret           string
 	s3server            string
 	policyModel         string
 	cipherKey           string
+	minioHTTPS          string
+	natsServer          string
 }
 
 func SetConfType() *Conf {
@@ -36,6 +40,12 @@ func SetConfType() *Conf {
 		config.port = os.Getenv("PORT")
 	}
 
+	if os.Getenv("WS_PORT") == "" {
+		config.wsPort = "8092"
+	} else {
+		config.wsPort = os.Getenv("WS_PORT")
+	}
+
 	if os.Getenv("MINIO_CLIENT_ID") == "" || os.Getenv("MINIO_CLIENT_SECRET") == "" || os.Getenv("MINIO_SERVER") == "" {
 		log.Fatal("No minio credentials set\n")
 	} else {
@@ -47,8 +57,10 @@ func SetConfType() *Conf {
 	switch config.environment {
 	case "localhost":
 		config.listenAndServe = "localhost:" + config.port
+		config.wsServer = "localhost:" + config.wsPort
 	default:
 		config.listenAndServe = ":" + config.port
+		config.wsServer = ":" + config.wsPort
 	}
 
 	config.rsaPrivate = os.Getenv("PORTAL_RSA_PRIV_KEY")
@@ -67,7 +79,11 @@ func SetConfType() *Conf {
 	if os.Getenv("CIPHER_KEY") == "" {
 		log.Fatal("no cipher key set")
 	}
-
+	if os.Getenv("MINIO_HTTPS") == "false" {
+		config.minioHTTPS = "false"
+	} else {
+		config.minioHTTPS = "true"
+	}
 	config.cipherKey = os.Getenv("CIPHER_KEY")
 
 	config.origin = "*"
@@ -76,6 +92,12 @@ func SetConfType() *Conf {
 	} else {
 		config.policyModel = os.Getenv("POLICY_MODEL_PATH")
 	}
+
+	if os.Getenv("NATS_SERVER") == "" {
+		log.Fatal("No nats server provided \n")
+	}
+	config.natsServer = os.Getenv("NATS_SERVER")
+
 	return config
 }
 
@@ -91,6 +113,8 @@ func (c *Conf) Get(option string) string {
 		return c.rsaPrivate
 	case "sqlcon-main":
 		return c.sqlConnectionMain
+	case "minio-https":
+		return c.minioHTTPS
 	case "sqlcon-policy":
 		return c.sqlConnectionPolicy
 	case "origin":
@@ -113,6 +137,10 @@ func (c *Conf) Get(option string) string {
 		return c.awsID
 	case "minio-secret":
 		return c.awsSecret
+	case "ws-server":
+		return c.wsServer
+	case "nats-server":
+		return c.natsServer
 	}
 	return ""
 }

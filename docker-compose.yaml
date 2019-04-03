@@ -1,0 +1,92 @@
+version: '3.2'
+services:
+  postgres:
+    restart: 'always'
+    ports:
+      - '5432:5432'
+    environment:
+      - "DB_USER=test"
+      - "DB_PASSWORD=oskar123"
+      - "ARCH_DB_DATABASE=archive"
+      - "POL_DB_DATABASE=policydb"
+      - "ARCH_SCHEMA=public"
+      - "POL_SCHEMA=policies"
+      - "POSTGRES_PASSWORD=#!!1234&/."
+    build: './db'
+    networks:
+      archnet:
+        aliases:
+          - 'postgres'
+  minio:
+    image: 'minio/minio'
+    restart: 'always'
+    ports:
+      - '9001:9000'
+    command: server data/minio
+    environment:
+      - "MINIO_ACCESS_KEY=oskar"
+      - "MINIO_SECRET_KEY=z2yByK2hB1ssIdddJtt3uql@l2gx"
+    volumes:
+      - data1:/data
+      #- ./minio:/root/.minio/certs
+      #- ./minio/config.json:/data/minio/.minio.sys/config/config.json
+    networks:
+      archnet:
+        aliases:
+          - 'minio'
+  frontend:
+    build:
+      context: "web-client"
+    ports:
+        - "8181:80"
+    networks:
+      archnet:
+        aliases:
+          - 'frontend'
+    depends_on:
+      - "backend"
+  backend:
+    build:
+      context: "backend"
+    command: "backend"
+    ports:
+      - "8101:8101"
+      - "8092:8092"
+    environment:
+      - "MINIO_CLIENT_ID=oskar"
+      - "PORT=8101"
+      - "ENVIRONMENT=docker"
+      - "MINIO_CLIENT_SECRET=z2yByK2hB1ssIdddJtt3uql@l2gx"
+      - "MINIO_SERVER=my-archive_minio_1:9000"
+      - "PSQL_CONNECTION_POLICY=host=postgres port=5432 user=test password=oskar123 dbname=policydb sslmode=disable"
+      - "PSQL_CONNECTION_MAIN=host=postgres port=5432 user=test password=oskar123 dbname=archive sslmode=disable"
+      - "PORTAL_RSA_PRIV_KEY=arch_test.pem"
+      - "PORTAL_RSA_PUB_KEY=arch_test.pub"
+      - "POLICY_MODEL_PATH=authz-model.conf"
+      - "CIPHER_KEY=Yh!25zRjBw4ZU1XaCAmk0KlzCI8O0mqA"
+      - "MINIO_HTTPS=false"
+      - "NATS_SERVER=nats://nats:4222"
+    networks:
+      archnet:
+        aliases:
+          - 'backend'
+    depends_on:
+    - "postgres"
+  nats:
+    image: 'nats'
+    restart: 'always'
+    ports:
+      - '4222:4222'
+      - '6222:6222'
+      - '8222:8222'
+    command: "-c gnatsd.conf --user=oskar --pass=$$2a$$10$$OJhj9nGA7WKpm3U7q2pBMOhJpfcZUUDwABiBXAAFXS52DEOgsx7.S"
+    volumes:
+      - ./nats:/certs
+    networks:
+      archnet:
+        aliases:
+          - 'nats'
+networks:
+  archnet:
+volumes:
+  data1:

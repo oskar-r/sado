@@ -3,6 +3,7 @@ package minio
 import (
 	"log"
 	"my-archive/backend/internal/config"
+	"strconv"
 
 	"github.com/minio/minio-go"
 )
@@ -29,7 +30,8 @@ func mainMionio() {
 }
 
 func ConnectToMinio(userID, creds string) (*minio.Client, error) {
-	mc, err := minio.New(config.Get("minio-server"), userID, creds, true)
+	https, _ := strconv.ParseBool(config.Get("minio-https"))
+	mc, err := minio.New(config.Get("minio-server"), userID, creds, https)
 	if err != nil {
 		log.Printf("[ERROR] Creating client: %+v", err)
 		return nil, err

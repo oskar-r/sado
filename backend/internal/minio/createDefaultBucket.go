@@ -26,7 +26,21 @@ func CreateDefaultBucket(bucket string) error {
 	err = mc.MakeBucket(bucket, "")
 	if err != nil {
 		log.Printf("[ERROR] could not create bucket: %+v", err)
+		return err
 	}
+	//arn:minio:sqs::1:nats
+	queueArn := minio.NewArn("minio", "sqs", "", "1", "nats")
+	log.Printf("[DEBUG] %s", queueArn.String())
+	queueConfig := minio.NewNotificationConfig(queueArn)
+	queueConfig.AddEvents(minio.ObjectCreatedAll, minio.ObjectRemovedAll)
+	bucketNotification := minio.BucketNotification{}
+	bucketNotification.AddQueue(queueConfig)
+
+	err = mc.SetBucketNotification(bucket, bucketNotification)
+	if err != nil {
+		log.Printf("[ERROR] could not create bucket: %+v", err)
+	}
+
 	return err
 }
 

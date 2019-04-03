@@ -15,7 +15,12 @@ const state = {
   documents: [],
   appRoutes: [],
   roles: [],
-  activeRole: ''
+  activeRole: '',
+  socket: {
+    isConnected: false,
+    message: '',
+    reconnectError: false
+  }
 }
 // getters
 const getters = {
@@ -131,6 +136,9 @@ const actions = {
     }).catch((error) => {
       console.log(error)
     })
+  },
+  updateDatasets ({ commit }, dataset) {
+    commit('setDataset', dataset)
   },
   logOut ({ commit }) {
     commit('setLogedIn', false)
