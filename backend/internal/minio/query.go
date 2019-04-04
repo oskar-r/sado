@@ -92,6 +92,9 @@ func Preview(pipe io.Writer, userID, secret, bucket, file string) error {
 		}
 	} else {
 		offset := int64(1000)
+		if s.Size < 1000 {
+			offset = s.Size - 1
+		}
 		for {
 			b2, err = readTopRow(obj, s, offset)
 
@@ -102,7 +105,11 @@ func Preview(pipe io.Writer, userID, secret, bucket, file string) error {
 			if len(b2) > 0 {
 				break
 			}
-			offset = offset + 500
+			if s.Size < offset+500 {
+				offset = s.Size - 1
+			} else {
+				offset = offset + 500
+			}
 		}
 	}
 	pipe.Write(b2)
