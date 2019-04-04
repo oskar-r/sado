@@ -1,20 +1,23 @@
 export function byType (contentType) {
-  var dc = 'document'
+  var dc = 'file'
   switch (contentType) {
     case 'application/zip':
-      dc = 'dataset'
+      dc = 'file-archive'
       break
     case 'application/json':
-      dc = 'dataset'
+      dc = 'file-code'
       break
     case 'text/plain':
-      dc = 'dataset'
+      dc = 'file-alt'
       break
     case 'text/csv':
-      dc = 'dataset'
+      dc = 'file-csv'
       break
     case 'application/x-gzip':
-      dc = 'dataset'
+      dc = 'file-archive'
+      break
+    case 'text/javascript':
+      dc = 'file-code'
       break
   }
   return dc

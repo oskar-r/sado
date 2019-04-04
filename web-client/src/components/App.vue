@@ -21,6 +21,7 @@
           <a href="#" class="log-out-item nav-item" @click="logOut" >
             <span class="icon-span">
               <i class="material-icons">exit_to_app</i>
+              
             </span>
             <span>
               Logga ut
@@ -38,6 +39,7 @@
 <script>
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+import '../assets/fontawesome.min.css'
 import TopBar from './TopBar'
 import { mapGetters, mapState } from 'vuex'
 import ErrorBadge from './ErrorBadge'
@@ -109,7 +111,21 @@ export default {
     font-style: normal;
     font-weight: 400;
     src: url('../assets/fonts/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2') format('woff2');
-}
+  }
+  @font-face {
+    font-family: 'Font Awesome 5 Free';
+    font-style: normal;
+    font-weight: 900;
+    font-display: auto;
+    src: url("../assets/fonts/fa-solid-900.eot");
+    src: url("../assets/fonts/fa-solid-900.eot?#iefix") format("embedded-opentype"),url("../assets/fonts/fa-solid-900.woff2") format("woff2"),url("../assets/fonts/fa-solid-900.woff") format("woff"),url("../assets/fonts/fa-solid-900.ttf") format("truetype"),url("../assets/fonts/fa-solid-900.svg#fontawesome") format("svg");
+  }
+
+  .fa,
+  .fas {
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900; 
+  }
 
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;

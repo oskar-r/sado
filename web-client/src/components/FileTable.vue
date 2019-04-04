@@ -31,6 +31,7 @@
 </template>
 <script>
 import { mapGetters } from 'vuex'
+import * as fileIcon from '../utility/documentTypes.js'
 
 export default {
    data() {
@@ -107,7 +108,7 @@ export default {
         return str
       },
       iconName(value,key,item) {
-        var icon =''
+        /*var icon =''
         switch (item.category) {
           case "document":
             icon ='<i class="material-icons">description</i>'
@@ -115,8 +116,9 @@ export default {
           case "dataset": 
             icon = '<i class="material-icons">view_column</i>'
             break;
-        }
-        return icon + ' '+ item.name
+        }*/
+        console.log(item.content_type)
+        return '<i class="fa fa-'+ fileIcon.byType(item.content_type) +'"></i><span class="file-icon-text">'+ item.name +'</span>'
       },
       showMenu() {
         console.log("hej")
@@ -143,6 +145,9 @@ export default {
 <style scoped>
   .file-table{
     text-align:left;
+  }
+  .file-table >>> .file-icon-text {
+    margin-left:1rem;
   }
   .wrap-text {
     word-break: break-all;
