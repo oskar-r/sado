@@ -1,5 +1,5 @@
 <template>
-    <b-container fluid>
+    <b-container fluid class="file-table">
       <b-row>
         <b-col cols="1"></b-col>
         <b-col cols="10"><FileTable /></b-col>
@@ -19,5 +19,7 @@ export default {
 </script>
 
 <style>
-
+ .file-table {
+   margin-top:1rem;
+ }
 </style>

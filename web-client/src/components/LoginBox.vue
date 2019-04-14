@@ -2,7 +2,7 @@
   <div id="login-box">
      <b-form>
       <b-form-group id="usernameLbl"
-                    label="username"
+                    label="Username"
                     label-for="username">
         <b-form-input id="username"
                       type="email"
@@ -12,7 +12,7 @@
         </b-form-input>
       </b-form-group>
       <b-form-group id="passwordLbl"
-                    label="password"
+                    label="Password"
                     label-for="password">
         <b-form-input id="password"
                       type="password"
@@ -21,7 +21,7 @@
                       placeholder="Password">
         </b-form-input>
       </b-form-group>
-      <b-button v-on:click="logIn" variant="primary">Logga in</b-button>
+      <b-button v-on:click="logIn" variant="primary">Log in</b-button>
     </b-form>
   </div>
 </template>

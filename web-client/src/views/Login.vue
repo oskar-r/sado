@@ -1,9 +1,9 @@
 <template>
   <b-container fluid class=login>
     <b-row>
-      <b-col cols="5"></b-col>
-      <b-col cols="2"><h2>Login</h2></b-col>
-      <b-col cols="5"></b-col>
+      <b-col cols="4"></b-col>
+      <b-col cols="4"><h2>Archive Demo - Login</h2></b-col>
+      <b-col cols="4"></b-col>
       </b-row>
     <b-row>
       <b-col cols="5"></b-col>

@@ -116,7 +116,7 @@ const mutations = {
 }
 // actions
 const actions = {
-  logIn ({ commit }, creds) {
+  logIn ({ commit, dispatch }, creds) {
     return new Promise((resolve, reject) => {
       Login.logIn(creds.username, creds.password).then((resp) => {
         console.log(resp)
@@ -124,6 +124,8 @@ const actions = {
         commit('setIdentifier', resp.identifier)
         commit('setUsername', resp.username)
         commit('setActiveRole', resp.role)
+        dispatch('getAppConfig')
+        dispatch('getMyDatasets')
         resolve(resp)
       }).catch((error) => {
         commit('setErrorMessage', { message: 'Ett fel intäffade vid inloggning', code: 403 })
@@ -162,9 +164,15 @@ const actions = {
       }
       if (error.response !== undefined && error.response.status !== undefined) {
         switch (error.response.status) {
+          case 401:
+            e.message = error.response.data
+            e.code = error.response.status
+            commit('setLogedIn', false)
+            break
           case 403:
             e.message = error.response.data
             e.code = error.response.status
+            this._vm.toasted.show('Token have expired, login again')
             commit('setLogedIn', false)
             break
           case 500:

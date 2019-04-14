@@ -1,6 +1,6 @@
 import * as parseDoc from './documentTypes'
 
-export function connect (url, store) {
+export function connect (url, store, toast) {
   setcookie('id', '72f91914-f3da-4f89-bc3a-b12fb9444cda', 1)
   const socket = new WebSocket(url)
 
@@ -14,6 +14,11 @@ export function connect (url, store) {
     try {
       console.log(store)
       store.dispatch('mainStore/updateDatasets', data)
+      toast.info('<div class="toast-title aria-label="Title" style=""> Uploaded </div><div aria-live="polite" role="alertdialog" class="toast-message" style="">' + data.name + '</div>', {
+        className: 'toast-info',
+        containerClass: 'toast-message',
+        icon: 'fa-file-upload'
+      })
     } catch (error) {
       console.error(error)
     }
