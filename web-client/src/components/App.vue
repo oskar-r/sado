@@ -50,7 +50,7 @@
 <script>
 // import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
-import '@sebgroup/bootstrap/css/bootstrap.css'
+import '../assets/css/seb-bootstrap.min.css'
 import '../assets/fontawesome.min.css'
 import TopBar from './TopBar'
 import { mapGetters, mapState } from 'vuex'
@@ -116,9 +116,9 @@ export default {
 
 <style>
  @import '../../node_modules/bootstrap-vue/dist/bootstrap-vue.css';
+ @import '../assets/css/seb-bootstrap.min.css';
  /*@import '../../node_modules/bootstrap/dist/css/bootstrap.css';*/
- @import '../../node_modules/@sebgroup/bootstrap/css/bootstrap.css';
- @import '../../node_modules/@sebgroup/fonts/css/seb-fonts.css';
+
  @font-face {
     font-family: 'Material Icons';
     font-style: normal;
