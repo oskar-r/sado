@@ -1,6 +1,13 @@
+## What is the Archive Demo
+This is a small proof-of-concept of a data archive and query solution. 
+
+## High level architecture
+![architecture](/documentation/arch.png?raw=true "High-level architecture")
+
+
 ## Install
 
-    docker-compose -up --build
+    docker-compose up --build
 
 You need to inject new config to minio to enable events
 
