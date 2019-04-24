@@ -11,8 +11,8 @@ This is a small proof-of-concept of a data archive and query solution.
 
 You need to inject new config to minio to enable events
 
-    mc config host add mys3 http://localhost:9001 oskar z2yByK2hB1ssIdddJtt3uql@l2gx
-    cat minio/config.json | mc admin config set docker && mc admin service restart docker
+    mc config host add test http://localhost:9001 oskar z2yByK2hB1ssIdddJtt3uql@l2gx
+    cat minio/config.json | mc admin config set test  && mc admin service restart test
 
 For now you need to create a new account by making a direct request
 If using postman

@@ -57,7 +57,7 @@ services:
       - "PORT=8101"
       - "ENVIRONMENT=docker"
       - "MINIO_CLIENT_SECRET=z2yByK2hB1ssIdddJtt3uql@l2gx"
-      - "MINIO_SERVER=my-archive_minio_1:9000"
+      - "MINIO_SERVER=minio:9000"
       - "PSQL_CONNECTION_POLICY=host=postgres port=5432 user=test password=oskar123 dbname=policydb sslmode=disable"
       - "PSQL_CONNECTION_MAIN=host=postgres port=5432 user=test password=oskar123 dbname=archive sslmode=disable"
       - "PORTAL_RSA_PRIV_KEY=arch_test.pem"
