@@ -50,6 +50,7 @@
 <script>
 // import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+//import '@sebgroup/bootstrap'
 import '../assets/css/seb-bootstrap.min.css'
 import '../assets/fontawesome.min.css'
 import TopBar from './TopBar'

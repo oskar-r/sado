@@ -21,7 +21,7 @@ services:
     image: 'minio/minio'
     restart: 'always'
     ports:
-      - '9001:9000'
+      - '9010:9000'
     command: server data/minio
     environment:
       - "MINIO_ACCESS_KEY=oskar"
@@ -39,12 +39,16 @@ services:
       context: "web-client"
     ports:
         - "8181:80"
+    environment:
+      - "PORT=8101"
+      - "ENVIRONMENT=docker"
     networks:
       archnet:
         aliases:
           - 'frontend'
     depends_on:
       - "backend"
+      - "minio"
   backend:
     build:
       context: "backend"
@@ -70,8 +74,11 @@ services:
       archnet:
         aliases:
           - 'backend'
+    restart: always
     depends_on:
     - "postgres"
+    - "minio"
+    - "nats"
   nats:
     image: 'nats'
     restart: 'always'

@@ -5,16 +5,12 @@ This is a small proof-of-concept of a data archive and query solution.
 ![architecture](/documentation/arch.png?raw=true "High-level architecture")
 
 
-## Install
+## Install and run
 
     docker-compose up --build
 
-You need to inject new config to minio to enable events
+For now you need to create a new user account by making a direct request
 
-    mc config host add test http://localhost:9001 oskar z2yByK2hB1ssIdddJtt3uql@l2gx
-    cat minio/config.json | mc admin config set test  && mc admin service restart test
-
-For now you need to create a new account by making a direct request
 If using postman
 
 make a POST call to localhost:8101/login
