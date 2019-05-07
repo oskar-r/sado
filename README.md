@@ -20,25 +20,25 @@ To get credentials needed for accoutn creation
 
 ### POST /login
 ```javascript
-    {
-	    "username":"admin",
-	    "password":"test",
-	    "role":"admin"
-    }
+{
+    "username":"admin",
+    "password":"test",
+    "role":"admin"
+}
 ```
 
 Create user account
 
 ### POST /admin/create-account
 ```javascript
-    {
-	    "username":"my-account",
-	    "password":"my-acc-pwd",
-	    "my_bucket":"my-bucket"
-    }
+{
+    "username":"my-account",
+    "password":"my-acc-pwd",
+    "my_bucket":"my-bucket"
+}
 ```
 
-Note that username and password need to be longer than 8 characters
+Note that username and password need to be longer than 8 characters. 
 
 Go to http://localhost:8181
 Login with my-account my-acc-pwd
@@ -50,13 +50,13 @@ You can then call the query api to get a sample. Remeber to use right credential
 
 POST /user/query 
 ```javascript
-    {
+{
     "query":"SELECT * FROM name.of.file.gz LIMIT 10",
     "dataset":"name.of.file.gz",
     "record_delimiter":"\n",
     "field_delimiter":",",
     "output": "json"
-    }
+}
 ```
 
 All your files are listed in the file explorer. You can switch from one to another by clicking a file in the list.
