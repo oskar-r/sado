@@ -7,7 +7,7 @@ import Api from '@/api/Api'
 export default {
   get () {
     return new Promise((resolve, reject) => {
-      Api().get('user/datasets').then((response) => {
+      Api().get('datasets/list').then((response) => {
         resolve(response.data)
       }).catch((error) => {
         reject(error)
@@ -17,7 +17,7 @@ export default {
   preview (file) {
     return new Promise((resolve, reject) => {
       console.log(file)
-      Api().get('user/preview?file=' + btoa(file)).then((response) => {
+      Api().get('datasets/preview?file=' + btoa(file)).then((response) => {
         resolve(response.data)
       }).catch((error) => {
         reject(error)

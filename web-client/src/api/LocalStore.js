@@ -18,7 +18,15 @@ export function getLocal (key) {
   if (process.browser !== undefined && process.browser) {
     try {
       if (typeof key === 'string') {
-        return JSON.parse(localStorage.getItem(key))
+        try {
+          var value = JSON.parse(localStorage.getItem(key))
+          return value
+        } catch (err) {
+          if (err.name === 'SyntaxError') {
+            return localStorage.getItem(key)
+          }
+          console.error('Error:' + err)
+        }
       }
     } catch (err) {
       console.error(err)

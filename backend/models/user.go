@@ -9,17 +9,22 @@ type User struct {
 	CurrentRole       string   `json:"current_role,omitempty"`
 	Roles             []string `json:"roles,omitempty"`
 	MyBucket          string   `json:"my_bucket,omitempty"`
+	MinioBucketName   string
 }
 
 type NewUser struct {
-	Username       string `json:"username,omitempty"`
-	Password       string `json:"password,omitempty"`
-	MyBucket       string `json:"my_bucket,omitempty"`
-	UserID         string `json:"user_id,omitempty"`
-	BCryptPassword string `json:"-"`
-	AESPassword    string `json:"-"`
+	Username        string `json:"username,omitempty"`
+	Password        string `json:"password,omitempty"`
+	MyBucket        string `json:"my_bucket,omitempty"`
+	UserID          string `json:"user_id,omitempty"`
+	BCryptPassword  string `json:"-"`
+	AESPassword     string `json:"-"`
+	MinioBucketName string `json:"-"`
 }
 
+type ChangeRole struct {
+	ToRole string `json:"to_role,omitempty"`
+}
 type AppConfig struct {
 	Routes []struct {
 		Order        int    `json:"order"`

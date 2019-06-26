@@ -14,6 +14,7 @@ type UserUseCase interface {
 	TokenRefresh(userID int, role string) error
 	SetUpUserAccount(user *models.NewUser) error
 	GetAppConfig(user *models.User) (*models.AppConfig, error)
+	ChangeUsersRole(user *models.User, newRole *models.ChangeRole) (string, time.Time, error)
 }
 
 func ValidateCredentials(username string, password string) (*models.User, error) {
@@ -24,6 +25,9 @@ func SetUpUserAccount(user *models.NewUser) error {
 	return impl.SetUpUserAccount(user)
 }
 
+func ChangeUsersRole(user *models.User, newRole *models.ChangeRole) (string, time.Time, error) {
+	return impl.ChangeUsersRole(user, newRole)
+}
 func GetAppConfig(user *models.User) (*models.AppConfig, error) {
 	return impl.GetAppConfig(user)
 }

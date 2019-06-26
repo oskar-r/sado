@@ -21,7 +21,7 @@ func (r *Repos) DeleteSession(id string) error {
 func (r *Repos) GetSession(id string) (*websocket.Conn, error) {
 	c, ok := r.sessionStore[id]
 	if !ok {
-		return nil, errors.New("session not found")
+		return nil, errors.New("session  " + id + " not found")
 	}
 	return c, nil
 }

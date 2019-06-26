@@ -93,12 +93,24 @@ func setupHTTPServer(e *casbin.Enforcer) (*gin.Engine, error) {
 	usr.Use(aum.MiddlewareFunc())
 	usr.Use(am.PathAuthorizer(e))
 	{
-		usr.POST("/upload", handlers.Upload())
-		usr.POST("/query", handlers.Query())
-		usr.GET("/preview", handlers.Preview())
+		//usr.POST("/upload", handlers.Upload())
+		//usr.POST("/query", handlers.Query())
+		//usr.GET("/preview", handlers.Preview())
 		usr.GET("/config", handlers.Config())
-		usr.GET("/datasets", handlers.ListMyData())
+		usr.POST("/changerole", handlers.ChangeRole())
+		//usr.GET("/datasets", handlers.ListMyData())
 	}
+
+	grp := r.Group("/datasets")
+	grp.Use(aum.MiddlewareFunc())
+	grp.Use(am.PathAuthorizer(e))
+	{
+		grp.POST("/upload", handlers.Upload())
+		grp.POST("/query", handlers.Query())
+		grp.GET("/preview", handlers.Preview())
+		grp.GET("/list", handlers.ListMyData())
+	}
+
 	return r, nil
 }
 

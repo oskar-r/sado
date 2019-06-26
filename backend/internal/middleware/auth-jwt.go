@@ -8,6 +8,7 @@ import (
 	"my-archive/backend/internal/utility"
 	"my-archive/backend/models" //!!!! Remove dependenciy
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -39,6 +40,7 @@ func AuthMiddleware() (*jwt.GinJWTMiddleware, error) {
 					"username": v.Username,
 					"role":     v.CurrentRole,
 					"user_id":  v.UserID,
+					"roles":    strings.Join(v.Roles, ","),
 				}
 			}
 			return jwt.MapClaims{}
@@ -67,9 +69,11 @@ func AuthMiddleware() (*jwt.GinJWTMiddleware, error) {
 			if claims["username"] == nil || claims["role"] == nil || claims["user_id"] == nil {
 				return &models.User{}
 			}
+
 			return &models.User{
 				Username:    claims["username"].(string),
 				CurrentRole: claims["role"].(string),
+				Roles:       strings.Split(claims["roles"].(string), ","),
 				UserID:      claims["user_id"].(string),
 			}
 		},

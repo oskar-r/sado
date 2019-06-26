@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log"
 	"my-archive/backend/internal/config"
+	am "my-archive/backend/internal/middleware"
 	"my-archive/backend/internal/minio"
 	"my-archive/backend/internal/utility"
 	"my-archive/backend/models"
@@ -31,11 +32,20 @@ func (uc *usecase) ValidateCredentials(username string, password string) (*model
 		u.Roles = append(u.Roles, "user")
 	}
 
-	log.Printf("[TEST] %+v", u.Roles)
-
 	return &u, nil
 }
 
+func (uc *usecase) ChangeUsersRole(user *models.User, newRole *models.ChangeRole) (string, time.Time, error) {
+	aum, err := am.AuthMiddleware()
+	if err != nil {
+		return "", time.Now(), err
+	}
+	if !utility.Contains(newRole.ToRole, user.Roles) {
+		return "", time.Now(), errors.New("invalid role")
+	}
+	user.CurrentRole = newRole.ToRole
+	return aum.TokenGenerator(user)
+}
 func (uc *usecase) SetUpUserAccount(user *models.NewUser) error {
 	pwd, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
 	if err != nil {
@@ -49,18 +59,16 @@ func (uc *usecase) SetUpUserAccount(user *models.NewUser) error {
 		return err
 	}
 	user.AESPassword = str
+	user.UserID = uuid.NewV4().String()
+	user.MinioBucketName = uuid.NewV4().String()
 
-	uuid := uuid.NewV4()
-
-	user.UserID = uuid.String()
-
-	err = minio.CreateDefaultBucket(user.MyBucket)
+	err = minio.CreateDefaultBucket(user.MinioBucketName)
 	if err != nil {
 		log.Printf("[ERROR] %+v", err)
 		return err
 	}
 
-	err = minio.CreateUser(user.UserID, user.Password, user.MyBucket)
+	err = minio.CreateUser(user.UserID, user.Password, user.MinioBucketName)
 	if err != nil {
 		log.Printf("[ERROR] %+v", err)
 		return err
@@ -68,7 +76,7 @@ func (uc *usecase) SetUpUserAccount(user *models.NewUser) error {
 
 	err = uc.repo.CreateUserAccount(context.Background(), user)
 	if err != nil {
-		err2 := minio.DeleteBucket(user.MyBucket) //Remove bucket of account creation fails
+		err2 := minio.DeleteBucket(user.MinioBucketName) //Remove bucket of account creation fails
 		if err2 != nil {
 			log.Printf("[ERROR] %+v", err2)
 		}

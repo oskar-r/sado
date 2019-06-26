@@ -4,6 +4,7 @@ import (
 	"my-archive/backend"
 	"my-archive/backend/models"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -53,6 +54,47 @@ func Config() gin.HandlerFunc {
 			return
 		}
 		c.JSON(200, cfg)
+		c.Done()
+		return
+	}
+}
+
+func ChangeRole() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		newRole := models.ChangeRole{}
+		err := c.Bind(&newRole)
+		if err != nil {
+			resp := map[string]string{"error": err.Error()}
+			c.JSON(http.StatusBadRequest, resp)
+			c.Abort()
+			return
+		}
+
+		user, err := extractUserFromClaim(c)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+			c.Abort()
+			return
+		}
+
+		token, expire, err := backend.ChangeUsersRole(user, &newRole)
+
+		if err != nil {
+			resp := map[string]string{"error": err.Error()}
+			c.JSON(http.StatusBadRequest, resp)
+			c.Abort()
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"code":     http.StatusOK,
+			"token":    token,
+			"expire":   expire.Format(time.RFC3339),
+			"username": user.Username,
+			"role":     newRole.ToRole,
+			"user_id":  user.UserID,
+		})
+
 		c.Done()
 		return
 	}

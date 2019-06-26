@@ -7,7 +7,7 @@ import Api from '@/api/Api'
 export default {
   post (file) {
     return new Promise((resolve, reject) => {
-      Api().post('user/upload?name=' + btoa(file.name) + '&content-type=' + btoa(file.type),
+      Api().post('datasets/upload?name=' + btoa(file.name) + '&content-type=' + btoa(file.type),
         file).then((response) => {
         console.log(response)
         resolve(true)

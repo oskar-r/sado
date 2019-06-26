@@ -27,3 +27,4 @@ yarn-error.log*
 *.sw*
 node_modules
 backend/api/api
+backend/config/conf.sh

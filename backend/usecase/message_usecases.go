@@ -30,7 +30,7 @@ func (uc *usecase) ForwardMessage(b []byte) error {
 	}
 	c, err := uc.repo.GetSession(message.Records[0].S3.Bucket.OwnerIdentity.PrincipalID)
 	if err != nil {
-		log.Printf("[ERROR] Could not parse message: %s", err.Error())
+		log.Printf("[ERROR] Could not send message to: %s", err.Error())
 		return err
 	}
 	notification := models.EventNotification{

@@ -6,13 +6,14 @@
           Archive - Demo
         </span>
         <form class="form-row">
-          <div class="col">
-            <select class="custom-select" id="native_select" placeholder="Role" aria-label="Role">
-              <option>First</option>
-              <option>Second</option>
-              <option>Third</option>
-              <option>Forth</option>
-            </select>
+          <div class="role-label">Role:</div>
+          <div class="col" v-if="myRoles.length > 1">
+            <b-dropdown id="role-dd" right :text="activeRole" split variant="bg-primary-element" class="m-md-2" :placeholder="activeRole" aria-label="Role">
+              <b-dropdown-item v-for="role in myRoles" :key=role @click="changeRole(role)" :active="activeRole == role ? true : false">{{role}}</b-dropdown-item>
+            </b-dropdown>
+          </div>
+          <div v-else class="role-label">
+            {{activeRole}}
           </div>
         </form>
       </nav>
@@ -63,19 +64,18 @@ export default {
   components: {Login, ErrorBadge, TopBar },
   data () {
     return {
-      logo: require('../assets/logo.png')
+      logo: require('../assets/logo.png'),
+      showDD:false
     }
   },
   created () {
      if (this.isLogedIn) {
       console.log('LOGEDIN' + this.isLogedIn)
       this.$store.dispatch('mainStore/getAppConfig').then((resp) => {
-        console.log(resp)
-        // this.$store.dispatch('mainStore/getBaseData')
       }).catch((err)=>{
         console.error(err)
       })
-      ws.connect('ws://localhost:8092', this.$store, this.$toasted)
+      ws.connect(process.env.VUE_APP_WS_SERVER, this.$store, this.$toasted)
       this.$store.dispatch('mainStore/getMyDatasets')
     }
   },
@@ -90,6 +90,20 @@ export default {
         return this.datasets
       }
       return this.documents
+    },
+    numberOfRoles() {
+      console.log(this.myRoles)
+      // return this.myRoles.length()
+      return this.myRoles.length() > 1 ? true : false
+    },
+    changeRole(role) {
+      if (role != this.activeRole) { //Change the role 
+        this.$store.dispatch('mainStore/changeRole', role).then(() => {
+          this.$store.dispatch('mainStore/getAppConfig')
+        }).catch((error) =>{
+          console.log(error)
+        })
+      }
     },
     dropdown(e, data) {
         this.set[data] = []
@@ -109,7 +123,9 @@ export default {
     ...mapGetters('mainStore', {
       isLogedIn: 'isLogedIn',
       routes: 'appRoutes',
-      datasets: 'getDatasets'
+      datasets: 'getDatasets',
+      myRoles: 'roles',
+      activeRole: 'getActiveRole',
     })
   }
 }
@@ -252,18 +268,35 @@ export default {
     background-color: #673AB6 !important;
     border-color: #673AB6 !important;
 }
+.toast-error {
+    color: #fff !important;
+    background-color:#F03529 !important;
+    border-color: #F03529 !important;
+}
+.toasted {
+  display:block!important;
+}
 .toasted-container.bottom-right {
     right: 1% !important;
     bottom: 1% !important;
+        max-width: 15%;
+}
+.toasted  i.fa {
+  padding-top:5px!important;
+  float:left!important;
 }
 .toast-title{
   float: left;
-  padding: 10px;
-  width: 100% !important;
   font-weight: 600;
+  padding-top:6px;
 }
 .toast-message {
-  float:left;
+    float: left;
+    display: block;
+    width: 100%;
+    padding-top: 6px;
+    padding-bottom:3px;
+    word-break: break-all;
 }
 .nav-item {
   display: block;
@@ -282,5 +315,14 @@ export default {
  .log-out-item {
     position: absolute;
     bottom: 0;
+ }
+ #role-dd{
+   margin-right:5%;
+ }
+ .role-label{
+   color:#fff;
+   font-size: 1.2em;
+   font-weight: bold;
+   padding-top:18px;
  }
 </style>

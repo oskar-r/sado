@@ -2,10 +2,12 @@ import BaseData from '../../api/BaseData'
 import Upload from '../../api/Upload'
 import Login from '../../api/Login'
 import Datasets from '../../api/Datasets'
+import { errorToast } from '../../utility/toastMessages'
 
 const state = {
   logedIn: Login.logedIn(),
   username: localStorage.username,
+  userID: localStorage.userID,
   identifier: localStorage.identifier,
   error: {
     code: 0,
@@ -29,6 +31,9 @@ const getters = {
   },
   getUsername () {
     return state.username
+  },
+  getUserID () {
+    return state.userID
   },
   getIdentifier () {
     return state.identifier
@@ -68,6 +73,9 @@ const getters = {
 const mutations = {
   setLogedIn (state, newState) {
     state.logedIn = newState
+  },
+  setUserID (state, userID) {
+    state.userID = userID
   },
   setAppRoutes (state, routes) {
     state.appRoutes = routes
@@ -124,11 +132,16 @@ const actions = {
         commit('setIdentifier', resp.identifier)
         commit('setUsername', resp.username)
         commit('setActiveRole', resp.role)
+        commit('setUserID', resp.userID)
         dispatch('getAppConfig')
         dispatch('getMyDatasets')
         resolve(resp)
       }).catch((error) => {
-        commit('setErrorMessage', { message: 'Ett fel intäffade vid inloggning', code: 403 })
+        const et = errorToast('Could not log in')
+        console.log(et)
+        this._vm.$toasted.info(et.message, et.style)
+        // this._vm.toasted.show('Could not log in')
+        // commit('setErrorMessage', { message: 'Ett fel intäffade vid inloggning', code: 403 })
         console.log(error)
         commit('setLogedIn', false)
         commit('setIdentifier', '')
@@ -139,11 +152,25 @@ const actions = {
       console.log(error)
     })
   },
+  changeRole ({ commit }, role) {
+    return new Promise((resolve, reject) => {
+      Login.changeRole(role).then((resp) => {
+        commit('setActiveRole', role)
+        localStorage.setItem('activeRole', role)
+        resolve(resp)
+      }).catch((error) => {
+        this._vm.toasted.show('An error occured when switching role')
+        // commit('setErrorMessage', { message: 'Ett fel intäffade vid inloggning', code: 403 })
+        reject(error)
+      })
+    })
+  },
   updateDatasets ({ commit }, dataset) {
     commit('setDataset', dataset)
   },
   logOut ({ commit }) {
     commit('setLogedIn', false)
+    localStorage.clear()
   },
   getAppConfig ({ commit }) {
     BaseData.getAppConfig().then((resp) => {
@@ -157,7 +184,7 @@ const actions = {
       commit('setRoles', resp.roles)
       commit('setActiveRole', resp.active_role)
     }).catch((error) => {
-      console.error(error.response)
+      console.error(error)
       var e = {
         message: 'Can´t get response from server - Is internet working properly?',
         code: ''

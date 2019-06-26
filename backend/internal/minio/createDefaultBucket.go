@@ -30,7 +30,6 @@ func CreateDefaultBucket(bucket string) error {
 	}
 	//arn:minio:sqs::1:nats
 	queueArn := minio.NewArn("minio", "sqs", "", "1", "nats")
-	log.Printf("[DEBUG] %s", queueArn.String())
 	queueConfig := minio.NewNotificationConfig(queueArn)
 	queueConfig.AddEvents(minio.ObjectCreatedAll, minio.ObjectRemovedAll)
 	bucketNotification := minio.BucketNotification{}
