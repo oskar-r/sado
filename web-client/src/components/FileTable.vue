@@ -9,12 +9,15 @@
         :items="files">
 
       <span slot="iconName" slot-scope="data" v-html="data.value" />
-      <template slot="show_details" slot-scope="row">
-        <!-- As `row.showDetails` is one-way, we call the toggleDetails function on @change -->
-        <b-form-checkbox @change="test(row)" v-model="row.detailsShowing">
-        </b-form-checkbox>
+      <template slot="context_menu" slot-scope="row">
+        
+        <b-dropdown size="sm" dropright variant="link" toggle-class="text-decoration-none" no-caret class="context-menu">
+          <template slot="button-content"><i class="fas fa-ellipsis-h"></i></template>
+          <b-dropdown-item  @click="query(row)">Query</b-dropdown-item>
+          <b-dropdown-item  @click="preview(row)">Preview</b-dropdown-item>
+          <b-dropdown-item  @click="deleteDataset(row)">Delete</b-dropdown-item>
+      </b-dropdown>
       </template>
-
       <template slot="row-details" slot-scope="row">
         <b-card>
           <b-row class="mb-2">
@@ -30,7 +33,7 @@
   </div>
 </template>
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapState } from 'vuex'
 import * as fileIcon from '../utility/documentTypes.js'
 
 export default {
@@ -66,17 +69,15 @@ export default {
             }
           },
           {
-            key: 'show_details',
-            lable: 'Details',
-            formatter: 'button'
+            key: 'context_menu',
+            label: ''
           }
         ]
       }
     },
 
     methods: {
-      test(row) {
-        console.log(row)
+      preview(row) {
        if (row.item.preview === undefined || row.item.preview.length == 0) {
           this.$store.dispatch('mainStore/previewFile', row.item.name).then((item) => {
             if (item.includes(',',0))
@@ -108,17 +109,11 @@ export default {
         return str
       },
       iconName(value,key,item) {
-        /*var icon =''
-        switch (item.category) {
-          case "document":
-            icon ='<i class="material-icons">description</i>'
-            break;
-          case "dataset": 
-            icon = '<i class="material-icons">view_column</i>'
-            break;
-        }*/
-        console.log(item.content_type)
         return '<i class="fa fa-'+ fileIcon.byType(item.content_type) +'"></i><span class="file-icon-text">'+ item.name +'</span>'
+      },
+      query(row) {
+        this.$store.dispatch('mainStore/selectDataset', row.item.name)
+        this.$router.push({ path: 'query' })
       },
       showMenu() {
         console.log("hej")
@@ -151,5 +146,23 @@ export default {
   }
   .wrap-text {
     word-break: break-all;
+  }
+  .table-responsive {
+    overflow-x:visible;
+  }
+  /*.three-dots:after {
+    content: '\2807';
+    font-size: 20px;
+  }*/
+  .context-menu >>> button {
+    border:0!important;
+    background-color: transparent!important;
+  }
+  .context-menu >>> .dropdown-menu {
+    border: 1px solid #474747;
+    transform: translate3d(10px, 15px, 0px);
+  }
+  .context-menu >>> .dropdown-item {
+    padding: .05rem .5rem!important;
   }
 </style>

@@ -1,29 +1,34 @@
 import BaseData from '../../api/BaseData'
 import Upload from '../../api/Upload'
 import Login from '../../api/Login'
+import Query from '../../api/Query'
 import Datasets from '../../api/Datasets'
 import { errorToast } from '../../utility/toastMessages'
 
-const state = {
-  logedIn: Login.logedIn(),
-  username: localStorage.username,
-  userID: localStorage.userID,
-  identifier: localStorage.identifier,
-  error: {
-    code: 0,
-    message: ''
-  },
-  datasets: [],
-  documents: [],
-  appRoutes: [],
-  roles: [],
-  activeRole: '',
-  socket: {
-    isConnected: false,
-    message: '',
-    reconnectError: false
+const initialState = () => {
+  return {
+    logedIn: Login.logedIn(),
+    username: localStorage.username,
+    userID: localStorage.userID,
+    identifier: localStorage.identifier,
+    error: {
+      code: 0,
+      message: ''
+    },
+    datasets: [],
+    documents: [],
+    appRoutes: [],
+    roles: [],
+    activeRole: '',
+    socket: {
+      isConnected: false,
+      message: '',
+      reconnectError: false
+    },
+    selectedDataset: ''
   }
 }
+const state = initialState()
 // getters
 const getters = {
   isLogedIn () {
@@ -31,6 +36,9 @@ const getters = {
   },
   getUsername () {
     return state.username
+  },
+  getSelectedDataset () {
+    return state.selectedDataset
   },
   getUserID () {
     return state.userID
@@ -77,6 +85,9 @@ const mutations = {
   setUserID (state, userID) {
     state.userID = userID
   },
+  setSelectedDataset (state, set) {
+    state.selectedDataset = set
+  },
   setAppRoutes (state, routes) {
     state.appRoutes = routes
   },
@@ -120,10 +131,18 @@ const mutations = {
         // state.datasets[index].preview = preview
       }
     })
+  },
+  setInitialState (state) {
+    // Merge rather than replace so we don't lose observers
+    // https://github.com/vuejs/vuex/issues/1118
+    Object.assign(state, initialState())
   }
 }
 // actions
 const actions = {
+  resetState ({ commit }) {
+    commit('setInitialState')
+  },
   logIn ({ commit, dispatch }, creds) {
     return new Promise((resolve, reject) => {
       Login.logIn(creds.username, creds.password).then((resp) => {
@@ -171,6 +190,17 @@ const actions = {
   logOut ({ commit }) {
     commit('setLogedIn', false)
     localStorage.clear()
+    commit('setInitialState')
+  },
+  selectDataset ({ commit }, datasetName) {
+    commit('setSelectedDataset', datasetName)
+  },
+  async runQuery ({ commit }, query) {
+    try {
+      return await Query.run(query)
+    } catch (e) {
+      throw e
+    }
   },
   getAppConfig ({ commit }) {
     BaseData.getAppConfig().then((resp) => {

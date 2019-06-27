@@ -1,7 +1,8 @@
 <template>
   <div id="account-registration">
+      <div v-if="activeRole =='admin'">
       <h2>Create account</h2>
-      <b-form @submit="create" v-if="show">
+      <b-form @submit.prevent="create" v-if="show">
         <b-form-group
             id="input-group-1"
             label="Username:"
@@ -44,12 +45,15 @@
         </b-form-group>
         <b-button type="submit" variant="primary">Create</b-button>
       </b-form>
+      <div v-if="created">Account {{form.username}} created</div>
+      </div>
+      <div v-else>No access to page</div>
   </div>
 </template>
 <script>
 
 import Accounts from '../api/Accounts'
-
+import { mapGetters } from 'vuex'
 export default {
    data() {
       return {
@@ -58,7 +62,8 @@ export default {
               password: '',
               bucket: ''
           },
-          show:true
+          show:true,
+          created:false
       }
     },
     methods: {  
@@ -74,7 +79,10 @@ export default {
         } 
     },
    computed: {
-   },
+    ...mapGetters('mainStore', {
+      activeRole: 'getActiveRole'
+    })
+   }
 }
 
 </script>

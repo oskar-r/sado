@@ -1,7 +1,7 @@
 <template>
-    <b-container fluid>
+    <div class="query-page">
       <QueryField />
-    </b-container>
+    </div>
 </template>
 
 <script>
@@ -15,5 +15,8 @@ export default {
 </script>
 
 <style>
-
+.query-page{
+  width:100%;
+  padding-top:3em;
+}
 </style>

@@ -48,7 +48,7 @@ Login as my-account, upload a csv or gzip file
 
 You can then call the query api to get a sample. Remeber to use right credentials in the call
 
-### POST /user/query 
+### POST /datasets/query 
 ```javascript
 {
     "query":"SELECT * FROM name.of.file.gz LIMIT 10",
