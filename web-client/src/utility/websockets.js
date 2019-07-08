@@ -1,10 +1,10 @@
 import * as parseDoc from './documentTypes'
 import { infoToast } from './toastMessages'
 
-export function connect (url, store, toast) {
+export function connect (url, store, toast, vm) {
   setcookie('id', store.getters['mainStore/getUserID'], 1)
   const socket = new WebSocket(url)
-
+  vm.$ws = socket
   socket.onopen = function () {
     console.log('Connected to ' + url)
   }
@@ -20,6 +20,10 @@ export function connect (url, store, toast) {
     } catch (error) {
       console.error(error)
     }
+  }
+  socket.onclose = function (event) {
+    console.log(event)
+    console.log('SOCKET CLOSED')
   }
 }
 

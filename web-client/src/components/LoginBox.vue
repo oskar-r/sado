@@ -26,7 +26,7 @@
   </div>
 </template>
 <script>
-
+import * as ws from '../utility/websockets.js'
 export default {
   data () {
     return {
@@ -40,6 +40,7 @@ export default {
       if (this.username.length > 0 && this.password.length > 0) {
         this.$store.dispatch('mainStore/logIn', { username: this.username, password: this.password }).then((resp) => {
           self.$store.dispatch('mainStore/getAppConfig')
+          ws.connect(process.env.VUE_APP_WS_SERVER, self.$store, self.$toasted, self)
         }).catch((err) => {
           console.error(err)
         })

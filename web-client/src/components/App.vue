@@ -75,13 +75,15 @@ export default {
       }).catch((err)=>{
         console.error(err)
       })
-      ws.connect(process.env.VUE_APP_WS_SERVER, this.$store, this.$toasted)
+      ws.connect(process.env.VUE_APP_WS_SERVER, this.$store, this.$toasted, this)
       this.$store.dispatch('mainStore/getMyDatasets')
     }
   },
   methods: {
     logOut() {
       console.log('log out')
+      console.log(this)
+      this.$ws.close()
       this.$store.dispatch('mainStore/logOut')
     },
     set (set) {
