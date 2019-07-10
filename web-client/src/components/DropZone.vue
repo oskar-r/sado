@@ -30,7 +30,7 @@
       var self = this
       if( this.dragAndDropCapable ){
         ['drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop'].forEach( function( evt ) {
-         
+
           this.$refs.fileform.addEventListener(evt, function(e){
             e.preventDefault()
             e.stopPropagation()
@@ -53,41 +53,11 @@
                 && 'FileReader' in window
       },
       upload(file) {
-
         this.$store.dispatch('mainStore/upload',file).then((resp) => {
           console.log(resp)
         }).catch((err)=> {
           console.error(err)
         })
-
-        /*
-        let formData = new FormData();
-        console.log(this.files)
-       for( var i = 0; i < this.files.length; i++ ){
-          let file = this.files[i];
-          formData.append('files[' + i + ']', file);
-        }
-
-        axios.post( 'http://localhost:8091/upload',
-          formData,
-          {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-          }
-        ).then(function(){
-          console.log('SUCCESS!!');
-        })
-        .catch(function(){
-          console.log('FAILURE!!');
-        });
-        this.files = []
-        */
-        /*this.$store.dispatch('mainStore/upload',formData).then((resp) => {
-          console.log(resp)
-        }).catch((err)=> {
-          console.error(err)
-        })*/
       }
     }
   }
