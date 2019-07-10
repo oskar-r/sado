@@ -13,6 +13,7 @@ import (
 	casbinadaptor "my-archive/backend/pkg/casbin-adapter"
 	"my-archive/backend/usecase"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/casbin/casbin"
@@ -124,7 +125,13 @@ func messageConnection() error {
 	// Connect Options.
 	opts := []nats.Option{nats.Name("Test Subscriber")}
 	opts = setupConnOptions(opts)
-	opts = append(opts, nats.UserInfo("oskar", "test123"))
+	minio_user := os.Getenv("NATS_USER")
+	minio_pwd := os.Getenv("NATS_PWD")
+	if minio_pwd == "" || minio_user == "" {
+		log.Printf("[ERROR] Could not connect to NATS server no credentials given NATS_USER and NATS_PWD")
+		return errors.New("No credentials")
+	}
+	opts = append(opts, nats.UserInfo(minio_user, minio_pwd))
 
 	nc, err := nats.Connect(config.Get("nats-server"), opts...)
 	if err != nil {

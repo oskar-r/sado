@@ -89,6 +89,8 @@ services:
       - ENVIRONMENT=docker
       - MINIO_CLIENT_SECRET=${MINIO_CLIENT_SECRET}
       - MINIO_SERVER=minio:9000
+      - NATS_USER=${NATS_USER}
+      - NATS_PWD=${NATS_PWD_PLAIN}
       - PSQL_CONNECTION_POLICY=host=postgres port=5432 user=${DB_USER} password=${DB_PWD} dbname=policydb sslmode=disable
       - PSQL_CONNECTION_MAIN=host=postgres port=5432 user=${DB_USER} password=${DB_PWD} dbname=archive sslmode=disable
       - PORTAL_RSA_PRIV_KEY=arch_test.pem
