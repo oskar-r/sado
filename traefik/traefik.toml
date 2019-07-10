@@ -1,0 +1,20 @@
+################################################################
+# API and dashboard configuration
+################################################################
+loglevel="DEBUG"
+
+defaultEntryPoints = ["http", "ws"]
+
+[entryPoints]
+    [entryPoints.http]
+        address = ":80"
+[api]
+    entrypoint="dashboard"
+ 
+################################################################
+# Docker configuration backend
+################################################################
+[docker]
+    domain = "docker.local"
+    watch = true
+    network = "frontnet"

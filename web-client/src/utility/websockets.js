@@ -1,7 +1,9 @@
 import * as parseDoc from './documentTypes'
 import { infoToast } from './toastMessages'
+require('dotenv').config()
 
 export function connect (url, store, toast, vm) {
+  console.log('Connnecting websocket with :' + store.getters['mainStore/getUserID'])
   setcookie('id', store.getters['mainStore/getUserID'], 1)
   const socket = new WebSocket(url)
   vm.$ws = socket
@@ -35,5 +37,6 @@ function setcookie (name, value, days) {
     date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000) // ) removed
     expires = '; expires=' + date.toGMTString() // + added
   }
-  document.cookie = name + '=' + value + expires + ';path=/;domain=localhost'
+  console.log(process.env.VUE_APP_DOMAIN)
+  document.cookie = name + '=' + value + expires + ';path=/;domain=' + process.env.VUE_APP_DOMAIN
 }
