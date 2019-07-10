@@ -1,17 +1,35 @@
 version: '3.2'
 services:
+  traefik:
+    image: traefik # The official Traefik docker image
+    command: --api --docker # Enables the web UI and tells Traefik to listen to docker
+    ports:
+      - "80:80"     # The HTTP port
+      - "8080:8080" # The Web UI (enabled by --api)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/traefik.toml:/traefik.toml
+    labels:
+      - traefik.frontend.rule=Host:monitor.${DOMAIN_NAME}
+      - traefik.port=8080
+    networks:
+      frontnet:
+        aliases:
+          - 'traefik'
   postgres:
     restart: 'always'
     ports:
       - '5432:5432'
     environment:
-      - "DB_USER=test"
-      - "DB_PASSWORD=oskar123"
+      - "DB_USER=${DB_USER}"
+      - "DB_PASSWORD=${DB_PWD}"
       - "ARCH_DB_DATABASE=archive"
       - "POL_DB_DATABASE=policydb"
       - "ARCH_SCHEMA=public"
       - "POL_SCHEMA=policies"
-      - "POSTGRES_PASSWORD=#!!1234&/."
+      - POSTGRES_PASSWORD=${DB_PG_PWD}
+    labels:
+      - traefik.enable=false
     build: './db'
     networks:
       archnet:
@@ -24,12 +42,14 @@ services:
       - '9010:9000'
     command: server data/minio
     environment:
-      - "MINIO_ACCESS_KEY=oskar"
-      - "MINIO_SECRET_KEY=z2yByK2hB1ssIdddJtt3uql@l2gx"
+      - MINIO_ACCESS_KEY=${MINIO_CLIENT_ID}
+      - MINIO_SECRET_KEY=${MINIO_CLIENT_SECRET}
     volumes:
       - data1:/data
       #- ./minio:/root/.minio/certs
       #- ./minio/config.json:/data/minio/.minio.sys/config/config.json
+    labels:
+      - traefik.enable=false
     networks:
       archnet:
         aliases:
@@ -38,11 +58,18 @@ services:
     build:
       context: "web-client"
     ports:
-        - "8181:80"
+        - "80"
     environment:
       - "PORT=8101"
       - "ENVIRONMENT=docker"
+    labels:
+      - traefik.backend=frontend
+      - traefik.docker.network=frontnet
+      - traefik.frontend.rule=Host:${FRONT_NAME}
     networks:
+      frontnet:
+        aliases:
+          - 'frontend'
       archnet:
         aliases:
           - 'frontend'
@@ -57,20 +84,33 @@ services:
       - "8101:8101"
       - "8092:8092"
     environment:
-      - "MINIO_CLIENT_ID=oskar"
-      - "PORT=8101"
-      - "ENVIRONMENT=docker"
-      - "MINIO_CLIENT_SECRET=z2yByK2hB1ssIdddJtt3uql@l2gx"
-      - "MINIO_SERVER=minio:9000"
-      - "PSQL_CONNECTION_POLICY=host=postgres port=5432 user=test password=oskar123 dbname=policydb sslmode=disable"
-      - "PSQL_CONNECTION_MAIN=host=postgres port=5432 user=test password=oskar123 dbname=archive sslmode=disable"
-      - "PORTAL_RSA_PRIV_KEY=arch_test.pem"
-      - "PORTAL_RSA_PUB_KEY=arch_test.pub"
-      - "POLICY_MODEL_PATH=authz-model.conf"
-      - "CIPHER_KEY=Yh!25zRjBw4ZU1XaCAmk0KlzCI8O0mqA"
-      - "MINIO_HTTPS=false"
-      - "NATS_SERVER=nats://nats:4222"
+      - MINIO_CLIENT_ID=${MINIO_CLIENT_ID}
+      - PORT=8101
+      - ENVIRONMENT=docker
+      - MINIO_CLIENT_SECRET=${MINIO_CLIENT_SECRET}
+      - MINIO_SERVER=minio:9000
+      - PSQL_CONNECTION_POLICY=host=postgres port=5432 user=${DB_USER} password=${DB_PWD} dbname=policydb sslmode=disable
+      - PSQL_CONNECTION_MAIN=host=postgres port=5432 user=${DB_USER} password=${DB_PWD} dbname=archive sslmode=disable
+      - PORTAL_RSA_PRIV_KEY=arch_test.pem
+      - PORTAL_RSA_PUB_KEY=arch_test.pub
+      - POLICY_MODEL_PATH=authz-model.conf
+      - CIPHER_KEY=${CIPHER_KEY}
+      - MINIO_HTTPS=false
+      - NATS_SERVER=nats://nats:4222"
+    labels:
+      - traefik.docker.network=frontnet
+      - traefik.enable=true
+      - traefik.be.frontend.rule=Host:${BACKEND_NAME}
+      - traefik.be.port=8101
+      - traefik.be.protocol=http
+      - traefik.be.backend.healthcheck.path=/health
+      - traefik.ws.frontend.rule=Host:${WS_NAME}
+      - traefik.ws.port=8092
+      - traefik.ws.protocol=ws
     networks:
+      frontnet:
+        aliases:
+          - 'backend'
       archnet:
         aliases:
           - 'backend'
@@ -86,14 +126,19 @@ services:
       - '4222:4222'
       - '6222:6222'
       - '8222:8222'
-    command: "-c gnatsd.conf --user=oskar --pass=$$2a$$10$$OJhj9nGA7WKpm3U7q2pBMOhJpfcZUUDwABiBXAAFXS52DEOgsx7.S"
+    command: "-c gnatsd.conf --user=${NATS_USER} --pass=${NATS_PWD}"
     volumes:
       - ./nats:/certs
+    labels:
+      - traefik.enable=false
     networks:
       archnet:
         aliases:
           - 'nats'
 networks:
   archnet:
+    external: false
+  frontnet:
+    external: true
 volumes:
   data1:
