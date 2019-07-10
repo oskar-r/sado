@@ -80,6 +80,7 @@ func setupHTTPServer(e *casbin.Enforcer) (*gin.Engine, error) {
 	}
 
 	r.POST("/login", aum.LoginHandler)
+	r.GET("/health", handlers.Health())
 
 	//My formida handlers
 	adm := r.Group("/admin")
@@ -93,12 +94,8 @@ func setupHTTPServer(e *casbin.Enforcer) (*gin.Engine, error) {
 	usr.Use(aum.MiddlewareFunc())
 	usr.Use(am.PathAuthorizer(e))
 	{
-		//usr.POST("/upload", handlers.Upload())
-		//usr.POST("/query", handlers.Query())
-		//usr.GET("/preview", handlers.Preview())
 		usr.GET("/config", handlers.Config())
 		usr.POST("/changerole", handlers.ChangeRole())
-		//usr.GET("/datasets", handlers.ListMyData())
 	}
 
 	grp := r.Group("/datasets")

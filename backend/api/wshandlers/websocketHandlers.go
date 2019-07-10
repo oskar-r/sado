@@ -50,6 +50,7 @@ func supervisor(cm map[string]*websocket.Conn, w http.ResponseWriter, r *http.Re
 	fmt.Fprintf(w, string(rsp))
 }
 
+//ServeWS creates a Websocket server and listens to incomming requests
 func ServeWS() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
@@ -95,41 +96,3 @@ func ServeWS() gin.HandlerFunc {
 		}
 	}
 }
-
-/*
-func main() {
-	cm := make(map[string]*websocket.Conn, 0)
-	context, _ := zmq4.NewContext()
-	socket, err := context.NewSocket(zmq4.PULL)
-	if err != nil {
-		println(err.Error())
-	}
-	err = socket.Bind("tcp://127.0.0.1:5557")
-	if err != nil {
-		log.Fatal("Socket bind:", err)
-	}
-	defer socket.Close()
-	go pushSocket(socket, cm)
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(cm, w, r)
-	})
-
-	http.HandleFunc("/supervisor", func(w http.ResponseWriter, r *http.Request) {
-		supervisor(cm, w, r)
-	})
-	http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
-		println("test")
-		//w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.WriteHeader(200)
-		fmt.Fprintf(w, "Test")
-	})
-	http.HandleFunc("/broadcast", func(w http.ResponseWriter, r *http.Request) {
-		broadcast(cm, w, r)
-	})
-
-	if err := http.ListenAndServe("127.0.0.1:1234", nil); err != nil {
-		log.Fatal("ListenAndServe:", err)
-	}
-}
-*/
