@@ -23,4 +23,4 @@ COPY --from=build /go/src/my-archive/backend/test-certs/mino-public.crt /usr/loc
 COPY --from=build /go/src/my-archive/backend/config/minio_config.json /root/config.json
 RUN update-ca-certificates
 
-ENTRYPOINT ["/bin/sh", "-c", "mc config host add archive http://$MINIO_SERVER $MINIO_CLIENT_ID $MINIO_CLIENT_SECRET && cat /root/config.json | mc admin config set archive  && mc admin service restart archive && backend"]
+ENTRYPOINT ["/bin/sh", "-c", "mc config host add archive http://$MINIO_SERVER $MINIO_CLIENT_ID '$MINIO_CLIENT_SECRET' && cat /root/config.json | mc admin config set archive  && mc admin service restart archive && backend"]
