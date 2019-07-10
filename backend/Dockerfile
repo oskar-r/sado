@@ -2,9 +2,9 @@ FROM golang:1.11.1-alpine3.8 AS build
 WORKDIR /go/src/my-archive/backend
 RUN apk update && apk add curl git ca-certificates && rm -rf /var/cache/apk/*
 RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc && chmod +x mc
+RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 COPY Gopkg.lock Gopkg.lock 
 COPY Gopkg.toml Gopkg.toml
-RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
 RUN dep ensure -vendor-only
 COPY . .
 WORKDIR /go/src/my-archive/backend/api

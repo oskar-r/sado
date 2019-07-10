@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"errors"
+	"flag"
 	"log"
 	"my-archive/backend"
 	"my-archive/backend/api/handlers"
@@ -20,6 +22,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	nats "github.com/nats-io/go-nats"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
@@ -27,6 +30,20 @@ func main() {
 	log.SetFlags(log.Llongfile)
 	cfg := appConf.SetConfType()
 	config.Set(cfg)
+
+	//Default password is test123
+	defaultPwd, err := bcrypt.GenerateFromPassword([]byte("test123"), 12)
+	if err != nil {
+		log.Fatalf("[ERROR] Could not generate default password %s", err.Error())
+	}
+	adminPwdPtr := flag.String("admin-password", string(defaultPwd), "Set admin password as a bEncrypted password")
+	flag.Parse()
+	var adminPwd []byte
+	if adminPwdPtr != nil {
+		adminPwd = []byte(*(adminPwdPtr))
+	} else {
+		log.Fatalf("[ERROR] Could parsing password")
+	}
 
 	repo, err := data.NewPSQL(config.Get("sqlcon-main"))
 	if err != nil {
@@ -36,6 +53,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("[ERROR] Can´t ping DB %s", err.Error())
 	}
+
+	repo.ChangeAdminPwd(context.Background(), adminPwd)
 
 	//e := casbin.NewEnforcer(config.Get("policy-model"), pgAdd.NewMysqlAdapter("", config.Get("mysqlcon")))
 	e := casbin.NewEnforcer(config.Get("policy-model"), casbinadaptor.NewPsqlAdapter("", config.Get("sqlcon-policy")))
@@ -49,7 +68,7 @@ func main() {
 	wsRoutes, err := setupWebsockets()
 
 	if err = messageConnection(); err != nil {
-		log.Fatal("[ERROR] %s", err.Error())
+		log.Fatalf("[ERROR] %s", err.Error())
 	}
 
 	if err != nil {
@@ -125,13 +144,13 @@ func messageConnection() error {
 	// Connect Options.
 	opts := []nats.Option{nats.Name("Test Subscriber")}
 	opts = setupConnOptions(opts)
-	minio_user := os.Getenv("NATS_USER")
-	minio_pwd := os.Getenv("NATS_PWD")
-	if minio_pwd == "" || minio_user == "" {
+	minioUser := os.Getenv("NATS_USER")
+	minioPwd := os.Getenv("NATS_PWD")
+	if minioPwd == "" || minioUser == "" {
 		log.Printf("[ERROR] Could not connect to NATS server no credentials given NATS_USER and NATS_PWD")
 		return errors.New("No credentials")
 	}
-	opts = append(opts, nats.UserInfo(minio_user, minio_pwd))
+	opts = append(opts, nats.UserInfo(minioUser, minioPwd))
 
 	nc, err := nats.Connect(config.Get("nats-server"), opts...)
 	if err != nil {

@@ -25,6 +25,7 @@ type UserRepository interface {
 	GetStorageCredentials(ctx context.Context, userID string) (map[string]string, error)
 	CreateUserAccount(ctx context.Context, user *models.NewUser) error
 	GetAppConfig(ctx context.Context, role string) (string, error)
+	ChangeAdminPwd(ctx context.Context, bCryptPwd []byte) error
 }
 
 type SessionStore interface {

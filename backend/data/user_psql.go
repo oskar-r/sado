@@ -147,3 +147,13 @@ func (r *Repos) GetAppConfig(ctx context.Context, role string) (string, error) {
 	}
 	return cfg, err
 }
+
+const changeAdminPwd = `UPDATE users SET user_pass=? WHERE username="admin"`
+
+func (r *Repos) ChangeAdminPwd(ctx context.Context, bCryptPwd []byte) error {
+	_, err := r.db.Exec(changeAdminPwd, bCryptPwd)
+	if err != nil {
+		log.Printf("[ERROR] %s", err.Error())
+	}
+	return err
+}

@@ -79,7 +79,7 @@ services:
   backend:
     build:
       context: "backend"
-    command: "backend"
+    command: "backend --admin-password=${ADMIN_PWD}"
     ports:
       - "8101:8101"
       - "8092:8092"

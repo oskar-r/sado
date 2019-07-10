@@ -37,6 +37,5 @@ function setcookie (name, value, days) {
     date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000) // ) removed
     expires = '; expires=' + date.toGMTString() // + added
   }
-  console.log(process.env.VUE_APP_DOMAIN)
   document.cookie = name + '=' + value + expires + ';path=/;domain=' + process.env.VUE_APP_DOMAIN
 }
