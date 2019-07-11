@@ -1,7 +1,7 @@
 ################################################################
 # API and dashboard configuration
 ################################################################
-loglevel="DEBUG"
+loglevel="ERROR"
 
 defaultEntryPoints = ["http", "ws"]
 

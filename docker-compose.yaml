@@ -16,6 +16,9 @@ services:
       frontnet:
         aliases:
           - 'traefik'
+    depends_on:
+    - "backend"
+    - "frontend"
   postgres:
     restart: 'always'
     ports:
@@ -54,6 +57,30 @@ services:
       archnet:
         aliases:
           - 'minio'
+  minio-client:
+    image: 'minio/mc'
+    environment:
+      - MINIO_SERVER=http://minio:9000
+      - MINIO_ACCESS_KEY=${MINIO_CLIENT_ID}
+      - MINIO_SECRET_KEY=${MINIO_CLIENT_SECRET}
+      - NATS_USER=${NATS_USER}
+      - NATS_PWD_PLAIN=${NATS_PWD_PLAIN}
+    labels:
+      - traefik.enable=false
+    entrypoint:
+      - "/bin/sh"
+      - "-c"
+      - "chmod +x /root/client-entrypoint.sh && ./root/client-entrypoint.sh"
+      #- mc config host add archive http://minio:9000 ${MINIO_CLIENT_ID} ${MINIO_CLIENT_SECRET} && cat /root/config.json | mc admin config set archive  && mc admin service restart archive
+    volumes:
+      - ./minio/config.json:/root/config.json
+      - ./minio/client-entrypoint.sh:/root/client-entrypoint.sh
+    networks:
+      archnet:
+        aliases:
+          - 'minio-client'
+    depends_on:
+      - "minio"
   frontend:
     build:
       context: "web-client"
@@ -98,7 +125,7 @@ services:
       - POLICY_MODEL_PATH=authz-model.conf
       - CIPHER_KEY=${CIPHER_KEY}
       - MINIO_HTTPS=false
-      - NATS_SERVER=nats://nats:4222"
+      - NATS_SERVER=nats://nats:4222
     labels:
       - traefik.docker.network=frontnet
       - traefik.enable=true
@@ -128,7 +155,7 @@ services:
       - '4222:4222'
       - '6222:6222'
       - '8222:8222'
-    command: "-c gnatsd.conf --user=${NATS_USER} --pass=${NATS_PWD}"
+    command: "-c nats-server.conf --user=${NATS_USER} --pass=${NATS_PWD}"
     volumes:
       - ./nats:/certs
     labels:

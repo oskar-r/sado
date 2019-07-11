@@ -1,8 +1,8 @@
 {
 	"version": "33",
 	"credential": {
-		"accessKey": "oskar",
-		"secretKey": "z2yByK2hB1ssIdddJtt3uql@l2gx",
+		"accessKey": "<MINIO_ACCESS_KEY>",
+		"secretKey": "<MINIO_SECRET_KEY>",
 		"expiration": "1970-01-01T00:00:00Z",
 		"status": "enabled"
 	},
@@ -108,8 +108,8 @@
 				"enable": true,
 				"address": "nats:4222",
 				"subject": "minio-events",
-				"username": "oskar",
-				"password": "test123",
+				"username": "<NATS_USER>",
+				"password": "<NATS_PWD_PLAIN>",
 				"token": "",
 				"secure": false,
 				"pingInterval": 0,
