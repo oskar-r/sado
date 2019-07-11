@@ -8,7 +8,11 @@ This is a small proof-of-concept of a data archive and query solution.
 There is an example .env file with the variables that needs to be set.
 
 Note that ADMIN_PWD and NATS_PWD are bcrypt encoded
-Generate these with e.g. htpasswd -n -B -C 11 admin
+Generate these with e.g. 
+```shell
+htpasswd -n -B -C 11 admin
+````
+
 Replace the $2y in the begining with $2a. Nats password also need to be provided in clear text for minio and the backend
 
 
