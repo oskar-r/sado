@@ -18,5 +18,6 @@ Replace the $2y in the begining with $2a. Nats password also need to be provided
 
 ## Try
 You can now access the front end client trough
+```shell
 front.app.localhost
-
+```
