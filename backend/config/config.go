@@ -24,6 +24,8 @@ type Conf struct {
 	cipherKey           string
 	minioHTTPS          string
 	natsServer          string
+	natsUser            string
+	natsPassword        string
 }
 
 func SetConfType() *Conf {
@@ -93,10 +95,12 @@ func SetConfType() *Conf {
 		config.policyModel = os.Getenv("POLICY_MODEL_PATH")
 	}
 
-	if os.Getenv("NATS_SERVER") == "" {
-		log.Fatal("No nats server provided \n")
+	if os.Getenv("NATS_SERVER") == "" || os.Getenv("NATS_USER") == "" || os.Getenv("NATS_PWD") == "" {
+		log.Fatal("No nats server and/or credenatials provided \n")
 	}
 	config.natsServer = os.Getenv("NATS_SERVER")
+	config.natsUser = os.Getenv("NATS_USER")
+	config.natsPassword = os.Getenv("NATS_PWD")
 
 	return config
 }
@@ -141,6 +145,10 @@ func (c *Conf) Get(option string) string {
 		return c.wsServer
 	case "nats-server":
 		return c.natsServer
+	case "nats-user":
+		return c.natsUser
+	case "nats-pwd":
+		return c.natsPassword
 	}
 	return ""
 }

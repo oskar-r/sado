@@ -24,12 +24,12 @@ services:
     ports:
       - '5432:5432'
     environment:
-      - "DB_USER=${DB_USER}"
-      - "DB_PASSWORD=${DB_PWD}"
-      - "ARCH_DB_DATABASE=archive"
-      - "POL_DB_DATABASE=policydb"
-      - "ARCH_SCHEMA=public"
-      - "POL_SCHEMA=policies"
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PWD}
+      - ARCH_DB_DATABASE=archive
+      - POL_DB_DATABASE=policydb
+      - ARCH_SCHEMA=public
+      - POL_SCHEMA=policies
       - POSTGRES_PASSWORD=${DB_PG_PWD}
     labels:
       - traefik.enable=false
